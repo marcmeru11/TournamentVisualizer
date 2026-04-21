@@ -1,5 +1,5 @@
 class RectShape {
-  constructor(x, y, width, height, color, filled = false, stroke = "#000", lineWidth = 2) {
+  constructor(x, y, width, height, color, filled = false, stroke = "#000", lineWidth = 2, radius = 0) {
     this.x = x;
     this.y = y;
     this.width = width;
@@ -8,11 +8,18 @@ class RectShape {
     this.filled = filled;
     this.stroke = stroke;
     this.lineWidth = lineWidth;
+    this.radius = radius;
   }
 
   draw(ctx, camera) {
     ctx.beginPath();
-    ctx.rect(this.x, this.y, this.width, this.height);
+    
+    // Check for modern roundRect support
+    if (ctx.roundRect) {
+      ctx.roundRect(this.x, this.y, this.width, this.height, this.radius);
+    } else {
+      ctx.rect(this.x, this.y, this.width, this.height);
+    }
 
     if (this.filled) {
       ctx.fillStyle = this.color;

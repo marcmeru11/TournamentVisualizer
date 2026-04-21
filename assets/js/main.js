@@ -1,16 +1,21 @@
 import TournamentBracket from "./index.js";
+import TournamentTheme from "./models/TournamentTheme.js";
 
 /**
  * Demo Implementation
  * This file demonstrates how to use the TournamentBracket module
- * independent of its internal implementation details.
+ * with the new TournamentTheme class.
  */
 
 try {
-  // 1. Initialize the bracket with the canvas ID
-  const bracket = new TournamentBracket("canvas");
+  // 1. Initialize with a customized Dark Theme preset
+  const customTheme = TournamentTheme.DARK.extend({
+    boxBorderRadius: 15,
+    roundSpacingX: 150
+  });
 
-  // 2. Load demo data
+  const bracket = new TournamentBracket("canvas", customTheme);
+  
   const demoData = [
     ["Equipo A", "Team with an Extremely Long Name That Should Cause Boxes to Grow", "Equipo C", "Equipo D", "E"],
     ["Equipo A", "Equipo C", "E"],

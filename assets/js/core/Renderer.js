@@ -6,11 +6,13 @@ class Renderer {
   #canvas;
   #ctx;
   #camera;
+  #backgroundColor;
 
-  constructor(canvas, camera) {
+  constructor(canvas, camera, backgroundColor = null) {
     this.#canvas = canvas;
     this.#ctx = canvas.getContext("2d");
     this.#camera = camera;
+    this.#backgroundColor = backgroundColor;
   }
 
   get ctx() {
@@ -26,7 +28,12 @@ class Renderer {
    */
   clear() {
     this.#camera.reset(this.#ctx);
-    this.#ctx.clearRect(0, 0, this.#canvas.width, this.#canvas.height);
+    if (this.#backgroundColor) {
+      this.#ctx.fillStyle = this.#backgroundColor;
+      this.#ctx.fillRect(0, 0, this.#canvas.width, this.#canvas.height);
+    } else {
+      this.#ctx.clearRect(0, 0, this.#canvas.width, this.#canvas.height);
+    }
   }
 
   /**

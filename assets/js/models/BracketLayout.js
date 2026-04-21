@@ -7,17 +7,11 @@ import TextShape from "../shapes/text.js";
  * Logic for calculating positions of tournament elements.
  */
 class BracketLayout {
-  static CONFIG = {
-    teamYsize: 50,
-    teamSpacingX: 20,
-    teamSpacingY: 20,
-    roundSpacingX: 100,
-    roundSpacingY: 50,
-    minWidth: 100,
-    paddingX: 24,
-    fontSize: 16,
-    fontFamily: "Arial",
-  };
+  #theme;
+
+  constructor(theme) {
+    this.#theme = theme;
+  }
 
   /**
    * Generates an array of shapes based on tournament data.
@@ -37,7 +31,7 @@ class BracketLayout {
     const bracketSize = 2 ** Math.ceil(Math.log2(initialTeams));
     const roundCount = rounds.length;
 
-    const { teamYsize, teamSpacingY } = BracketLayout.CONFIG;
+    const { teamYsize, teamSpacingY } = this.#theme;
     const slotHeight = teamYsize + teamSpacingY;
 
     const getRoundStep = (r) => slotHeight * (2 ** r);
@@ -60,7 +54,15 @@ class BracketLayout {
 
         // Add Rect
         shapes.push(new RectShape(
-          x, y, width, teamYsize, "#dbeafe", true, "#1e293b", 2
+          x, 
+          y, 
+          width, 
+          teamYsize, 
+          this.#theme.boxFillColor, 
+          true, 
+          this.#theme.boxStrokeColor, 
+          this.#theme.boxLineWidth,
+          this.#theme.boxBorderRadius
         ));
 
         // Add Text
@@ -68,9 +70,9 @@ class BracketLayout {
           x + width / 2, 
           y + teamYsize / 2, 
           teams[t], 
-          "#111827", 
-          BracketLayout.CONFIG.fontFamily, 
-          BracketLayout.CONFIG.fontSize
+          this.#theme.textColor, 
+          this.#theme.fontFamily, 
+          this.#theme.fontSize
         ));
 
         // Add connecting lines
@@ -79,7 +81,12 @@ class BracketLayout {
           const nextY = getTeamY(r + 1, Math.floor(t / 2)) + teamYsize / 2;
 
           shapes.push(new LineShape(
-            x + width, y + teamYsize / 2, nextMetric.x, nextY, "#0f172a", 3
+            x + width, 
+            y + teamYsize / 2, 
+            nextMetric.x, 
+            nextY, 
+            this.#theme.lineColor, 
+            this.#theme.lineWidth
           ));
         }
       }
@@ -96,15 +103,15 @@ class BracketLayout {
     let currentX = 0;
 
     if (ctx) {
-      ctx.font = `${BracketLayout.CONFIG.fontSize}px ${BracketLayout.CONFIG.fontFamily}`;
+      ctx.font = `${this.#theme.fontSize}px ${this.#theme.fontFamily}`;
     }
 
     for (let r = 0; r < rounds.length; r++) {
-      let maxTextWidth = BracketLayout.CONFIG.minWidth;
+      let maxTextWidth = this.#theme.minWidth;
 
       for (const team of rounds[r]) {
         const measuredWidth = ctx ? ctx.measureText(team).width : team.length * 8;
-        const requiredWidth = measuredWidth + BracketLayout.CONFIG.paddingX;
+        const requiredWidth = measuredWidth + this.#theme.paddingX;
         if (requiredWidth > maxTextWidth) {
           maxTextWidth = requiredWidth;
         }
@@ -116,7 +123,7 @@ class BracketLayout {
       });
 
       // Accumulate X for next round
-      currentX += maxTextWidth + BracketLayout.CONFIG.roundSpacingX;
+      currentX += maxTextWidth + this.#theme.roundSpacingX;
     }
 
     return metrics;

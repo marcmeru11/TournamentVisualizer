@@ -3,6 +3,7 @@ import Renderer from "./core/Renderer.js";
 import InputManager from "./core/InputManager.js";
 import Tournament from "./models/Tournament.js";
 import BracketLayout from "./models/BracketLayout.js";
+import TournamentTheme from "./models/TournamentTheme.js";
 
 /**
  * TournamentBracket
@@ -16,12 +17,14 @@ class TournamentBracket {
   #tournament;
   #layout;
   #input;
+  #theme;
   #sceneShapes = [];
 
   /**
    * @param {HTMLCanvasElement|string} canvasElement - The canvas element or its ID.
+   * @param {TournamentTheme|Object} themeOrOptions - A theme instance or configuration object.
    */
-  constructor(canvasElement) {
+  constructor(canvasElement, themeOrOptions = {}) {
     this.#canvas = typeof canvasElement === "string" 
       ? document.getElementById(canvasElement) 
       : canvasElement;
@@ -30,10 +33,15 @@ class TournamentBracket {
       throw new Error("TournamentBracket: Valid canvas element or ID required.");
     }
 
+    // Ensure we have a TournamentTheme instance
+    this.#theme = themeOrOptions instanceof TournamentTheme 
+      ? themeOrOptions 
+      : new TournamentTheme(themeOrOptions);
+
     this.#camera = new Camera();
-    this.#renderer = new Renderer(this.#canvas, this.#camera);
+    this.#renderer = new Renderer(this.#canvas, this.#camera, this.#theme.backgroundColor);
     this.#tournament = new Tournament();
-    this.#layout = new BracketLayout();
+    this.#layout = new BracketLayout(this.#theme);
     
     this.#input = new InputManager(
       this.#canvas, 
