@@ -83,7 +83,7 @@ class TournamentBracket {
   }
 
   #updateScene() {
-    this.#sceneShapes = this.#layout.generateShapes(this.#tournament);
+    this.#sceneShapes = this.#layout.generateShapes(this.#tournament, this.#renderer.ctx);
     this.render();
   }
 }

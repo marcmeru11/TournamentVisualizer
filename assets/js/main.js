@@ -12,7 +12,7 @@ try {
 
   // 2. Load demo data
   const demoData = [
-    ["Equipo A", "Equipo B", "Equipo C", "Equipo D", "E"],
+    ["Equipo A", "Team with an Extremely Long Name That Should Cause Boxes to Grow", "Equipo C", "Equipo D", "E"],
     ["Equipo A", "Equipo C", "E"],
     ["Equipo A", "E"],
     ["Equipo A"]

@@ -11,6 +11,8 @@ class TextShape {
   draw(ctx) {
     ctx.fillStyle = this.color;
     ctx.font = `${this.fontSize}px ${this.font}`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
     ctx.fillText(this.text, this.x, this.y);
   }
 }
