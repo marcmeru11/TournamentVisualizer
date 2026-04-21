@@ -8,29 +8,32 @@ import TournamentTheme from "./models/TournamentTheme.js";
  */
 
 try {
-  // 1. Initialize with a customized Dark Theme preset
   const customTheme = TournamentTheme.DARK.extend({
     boxBorderRadius: 15,
-    roundSpacingX: 150
+    roundSpacingX: 120,
+    layoutType: "split",
+    centerGap: 250
   });
 
   const bracket = new TournamentBracket("canvas", customTheme);
   
   const demoData = [
     [
-      { name: "Equipo A", score: 3 }, 
-      { name: "Team with an Extremely Long Name That Should Cause Boxes to Grow", score: 2 }, 
-      { name: "Equipo C", score: 1 }, 
-      "Equipo D", 
-      "E"
+      { name: "Team 1", score: 2 }, { name: "Team 2", score: 1 },
+      { name: "Team 3", score: 0 }, { name: "Team 4", score: 3 },
+      { name: "Team 5", score: 1 }, { name: "Team 6", score: 2 },
+      { name: "Team 7", score: 3 }, { name: "Team 8", score: 0 }
     ],
     [
-      { name: "Equipo A", score: 2 }, 
-      { name: "Equipo C", score: 0 }, 
-      "E"
+      { name: "Team 1", score: 3 }, { name: "Team 4", score: 2 },
+      { name: "Team 6", score: 1 }, { name: "Team 7", score: 4 }
     ],
-    ["Equipo A", "E"],
-    ["Equipo A"]
+    [
+      { name: "Team 1", score: 5 }, { name: "Team 7", score: 2 }
+    ],
+    [
+      { name: "Winner: Team 1" }
+    ]
   ];
 
   bracket.setData(demoData);

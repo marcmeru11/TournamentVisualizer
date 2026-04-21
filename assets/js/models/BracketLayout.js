@@ -24,119 +24,128 @@ class BracketLayout {
 
     if (tournament.isEmpty) return shapes;
 
-    // 1. Calculate per-round widths and X positions
+    const roundCount = rounds.length;
+    const isSplit = this.#theme.layoutType === "split" && roundCount > 1;
+    
+    // 1. Calculate per-round widths and X positions (base linear metrics)
     const roundMetrics = this.#calculateRoundMetrics(rounds, ctx);
 
     const initialTeams = rounds[0].length;
     const bracketSize = 2 ** Math.ceil(Math.log2(initialTeams));
-    const roundCount = rounds.length;
-
-    const { teamYsize, teamSpacingY } = this.#theme;
+    const { teamYsize, teamSpacingY, centerGap } = this.#theme;
     const slotHeight = teamYsize + teamSpacingY;
+
+    // Helper to get side-aware X coordinate
+    const getX = (r, t, totalInRound) => {
+      const metric = roundMetrics[r];
+      if (!isSplit || r === roundCount - 1) {
+        // Center final or single layout
+        if (isSplit && r === roundCount - 1) {
+          const wingWidth = roundMetrics[roundCount - 2].x + roundMetrics[roundCount - 2].width;
+          return wingWidth + (centerGap / 2) - (metric.width / 2);
+        }
+        return metric.x;
+      }
+      
+      const isRightSide = t >= totalInRound / 2;
+      if (isRightSide) {
+        const wingWidth = roundMetrics[roundCount - 2].x + roundMetrics[roundCount - 2].width;
+        const totalSplitWidth = (wingWidth * 2) + centerGap;
+        return totalSplitWidth - metric.x - metric.width;
+      }
+      return metric.x;
+    };
 
     const getRoundStep = (r) => slotHeight * (2 ** r);
 
-    const getTeamY = (r, index) => {
+    const getTeamY = (r, index, totalInRound) => {
+      let effectiveIndex = index;
+      let effectiveBracketSize = bracketSize;
+      
+      if (isSplit && r < roundCount - 1) {
+        const sideSize = totalInRound / 2;
+        effectiveIndex = index % sideSize;
+        effectiveBracketSize = bracketSize / 2;
+      }
+
       const step = getRoundStep(r);
-      const totalHeight = bracketSize * slotHeight;
-      const usedHeight = (rounds[r].length - 1) * step + teamYsize;
+      const totalHeight = effectiveBracketSize * slotHeight;
+      const usedHeight = ( (isSplit && r < roundCount - 1 ? (totalInRound / 2) : totalInRound) - 1) * step + teamYsize;
       const topMargin = (totalHeight - usedHeight) / 2;
 
-      return topMargin + index * step;
+      return topMargin + effectiveIndex * step;
     };
 
     for (let r = 0; r < roundCount; r++) {
       const teams = rounds[r];
-      const { x, width } = roundMetrics[r];
+      const itemsInRound = teams.length;
 
-      for (let t = 0; t < teams.length; t++) {
+      for (let t = 0; t < itemsInRound; t++) {
         const teamData = teams[t];
         const teamName = typeof teamData === "string" ? teamData : teamData.name;
         const score = teamData.score !== undefined ? teamData.score : null;
         
-        const y = getTeamY(r, t);
+        const x = getX(r, t, itemsInRound);
+        const y = getTeamY(r, t, itemsInRound);
+        
+        const width = roundMetrics[r].width;
         const hasScore = score !== null;
         const scoreWidth = hasScore ? this.#theme.scoreBoxWidth : 0;
         const effectiveNameWidth = width - scoreWidth;
+        const isRightSide = isSplit && r < roundCount - 1 && t >= itemsInRound / 2;
 
         // Add Main Box
         shapes.push(new RectShape(
-          x, 
-          y, 
-          width, 
-          teamYsize, 
-          this.#theme.boxFillColor, 
-          true, 
-          this.#theme.boxStrokeColor, 
-          this.#theme.boxLineWidth,
-          this.#theme.boxBorderRadius
+          x, y, width, teamYsize, this.#theme.boxFillColor, true, 
+          this.#theme.boxStrokeColor, this.#theme.boxLineWidth, this.#theme.boxBorderRadius
         ));
 
-        // Add Score Box (Optional)
+        // Add Score Box (Symmetric)
         if (hasScore) {
+          const scoreX = isRightSide ? x : x + effectiveNameWidth;
+          const borderRadius = isRightSide 
+            ? [this.#theme.boxBorderRadius, 0, 0, this.#theme.boxBorderRadius]
+            : [0, this.#theme.boxBorderRadius, this.#theme.boxBorderRadius, 0];
+
           shapes.push(new RectShape(
-            x + effectiveNameWidth,
-            y,
-            scoreWidth,
-            teamYsize,
-            this.#theme.scoreBoxFillColor,
-            true,
-            this.#theme.boxStrokeColor,
-            this.#theme.boxLineWidth,
-            [0, this.#theme.boxBorderRadius, this.#theme.boxBorderRadius, 0]
+            scoreX, y, scoreWidth, teamYsize, this.#theme.scoreBoxFillColor, true,
+            this.#theme.boxStrokeColor, this.#theme.boxLineWidth, borderRadius
           ));
 
-          // Score Text
           shapes.push(new TextShape(
-            x + effectiveNameWidth + scoreWidth / 2,
-            y + teamYsize / 2,
-            score.toString(),
-            this.#theme.scoreTextColor,
-            this.#theme.fontFamily,
-            this.#theme.fontSize
+            scoreX + scoreWidth / 2, y + teamYsize / 2, score.toString(),
+            this.#theme.scoreTextColor, this.#theme.fontFamily, this.#theme.fontSize
           ));
         }
 
-        // Add Team Name Text (Centered in the remaining area)
+        // Add Team Name Text
+        const nameX = isRightSide ? x + scoreWidth : x;
         shapes.push(new TextShape(
-          x + effectiveNameWidth / 2, 
-          y + teamYsize / 2, 
-          teamName, 
-          this.#theme.textColor, 
-          this.#theme.fontFamily, 
-          this.#theme.fontSize
+          nameX + effectiveNameWidth / 2, y + teamYsize / 2, teamName,
+          this.#theme.textColor, this.#theme.fontFamily, this.#theme.fontSize
         ));
 
-        // Add connecting lines (Orthogonal / Bracket Style)
+        // Add Progress Connectors
         if (r < roundCount - 1) {
+          const isLastSplitRound = isSplit && r === roundCount - 2;
           const nextMetric = roundMetrics[r + 1];
-          const nextY = getTeamY(r + 1, Math.floor(t / 2)) + teamYsize / 2;
           
-          const xStart = x + width;
-          const yStart = y + teamYsize / 2;
-          const xEnd = nextMetric.x;
-          const yEnd = nextY;
+          let nextT = Math.floor(t / 2);
+          let nextRoundTotal = rounds[r + 1].length;
+          const nextX = getX(r + 1, nextT, nextRoundTotal);
+          const nextY = getTeamY(r + 1, nextT, nextRoundTotal) + teamYsize / 2;
           
-          // Midpoint for the "bracket" bend
-          const midX = xStart + (this.#theme.roundSpacingX / 2);
+          const midGap = this.#theme.roundSpacingX / 2;
+          const xStart = isRightSide ? x : x + width;
+          const xDir = isRightSide ? -1 : 1;
+          const xMid = isLastSplitRound ? (isRightSide ? x - (centerGap / 4) : x + width + (centerGap / 4)) : xStart + (midGap * xDir);
+          
+          const xEnd = isRightSide ? nextX + nextMetric.width : nextX;
 
-          // 1. Horizontal out from current box
-          shapes.push(new LineShape(
-            xStart, yStart, midX, yStart, 
-            this.#theme.lineColor, this.#theme.lineWidth
-          ));
-
-          // 2. Vertical segment to meet next round level
-          shapes.push(new LineShape(
-            midX, yStart, midX, yEnd, 
-            this.#theme.lineColor, this.#theme.lineWidth
-          ));
-
-          // 3. Horizontal into next round box
-          shapes.push(new LineShape(
-            midX, yEnd, xEnd, yEnd, 
-            this.#theme.lineColor, this.#theme.lineWidth
-          ));
+          // Orthogonal path
+          shapes.push(new LineShape(xStart, y + teamYsize/2, xMid, y + teamYsize/2, this.#theme.lineColor, this.#theme.lineWidth));
+          shapes.push(new LineShape(xMid, y + teamYsize/2, xMid, nextY, this.#theme.lineColor, this.#theme.lineWidth));
+          shapes.push(new LineShape(xMid, nextY, xEnd, nextY, this.#theme.lineColor, this.#theme.lineWidth));
         }
       }
     }

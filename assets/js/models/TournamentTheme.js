@@ -23,6 +23,9 @@ class TournamentTheme {
     this.scoreBoxFillColor = options.scoreBoxFillColor || "#1e293b";
     this.scoreTextColor = options.scoreTextColor || "#ffffff";
     this.scoreBoxWidth = options.scoreBoxWidth ?? 30;
+    // Layout
+    this.layoutType = options.layoutType || "single"; // 'single' or 'split'
+    this.centerGap = options.centerGap ?? 200;
   }
 
   /**
