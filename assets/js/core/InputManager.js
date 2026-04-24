@@ -64,10 +64,6 @@ class InputManager {
     const worldY = (mouseY - this.#camera.y) / this.#camera.zoom;
 
     this.#camera.zoom *= zoomFactor;
-    this.#camera.zoom = Math.max(
-      this.#camera.minZoom,
-      Math.min(this.#camera.maxZoom, this.#camera.zoom)
-    );
 
     this.#camera.x = mouseX - worldX * this.#camera.zoom;
     this.#camera.y = mouseY - worldY * this.#camera.zoom;

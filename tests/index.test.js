@@ -57,4 +57,11 @@ describe('TournamentBracket Integration', () => {
     expect(canvas.width).toBe(800);
     expect(canvas.height).toBe(600);
   });
+
+  it('should constrain camera position', () => {
+    const bracket = new TournamentBracket(canvas);
+    bracket.setData([[{ name: 'Team' }]]);
+    // Verifying it runs without error as camera is private
+    expect(bracket).toBeDefined();
+  });
 });

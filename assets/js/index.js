@@ -86,6 +86,7 @@ class TournamentBracket {
     const height = this.#canvas.clientHeight;
 
     this.#renderer.resize(width, height);
+    this.#camera.setCanvasSize(width, height);
     this.centerCamera();
     this.render();
   }
@@ -105,9 +106,6 @@ class TournamentBracket {
     this.render();
   }
 
-  /**
-   * Centers the camera on the current bracket.
-   */
   centerCamera() {
     if (this.#sceneShapes.length === 0) return;
 
@@ -127,6 +125,9 @@ class TournamentBracket {
     const canvasWidth = this.#canvas.width;
     const canvasHeight = this.#canvas.height;
 
+    // Update camera limits
+    this.#camera.setBounds(minX, minY, maxX, maxY);
+
     // Calculate optimal zoom to fit the bracket with a margin
     const padding = 0.8; // 80% of the screen
     this.#camera.zoom = Math.min(
@@ -141,6 +142,7 @@ class TournamentBracket {
     
     console.log("TournamentBracket: Camera adapted to fit", bracketWidth, "x", bracketHeight, "at zoom", this.#camera.zoom);
   }
+
 }
 
 export default TournamentBracket;
