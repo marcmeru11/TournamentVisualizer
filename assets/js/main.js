@@ -12,7 +12,8 @@ try {
     boxBorderRadius: 15,
     roundSpacingX: 120,
     //layoutType: "split",
-    centerGap: 250
+    centerGap: 250,
+    showCenterButton: true
   });
 
   const bracket = new TournamentBracket("canvas", customTheme);

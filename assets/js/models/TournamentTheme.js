@@ -26,6 +26,23 @@ class TournamentTheme {
     // Layout
     this.layoutType = options.layoutType || "single"; // 'single' or 'split'
     this.centerGap = options.centerGap ?? 200;
+
+    // Center Button
+    this.showCenterButton = options.showCenterButton ?? false;
+    this.centerButtonText = options.centerButtonText || "Center View";
+    this.centerButtonStyle = {
+      padding: "8px 16px",
+      backgroundColor: "#1e293b",
+      color: "#f8fafc",
+      border: "1px solid #38bdf8",
+      borderRadius: "8px",
+      cursor: "pointer",
+      fontSize: "14px",
+      fontWeight: "500",
+      transition: "all 0.2s ease",
+      boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+      ...options.centerButtonStyle
+    };
   }
 
   /**

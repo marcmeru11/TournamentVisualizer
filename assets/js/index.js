@@ -19,6 +19,7 @@ class TournamentBracket {
   #input;
   #theme;
   #sceneShapes = [];
+  #centerButton = null;
 
   /**
    * @param {HTMLCanvasElement|string} canvasElement - The canvas element or its ID.
@@ -50,6 +51,10 @@ class TournamentBracket {
       this.#camera, 
       this.#onInputUpdate.bind(this)
     );
+    
+    if (this.#theme.showCenterButton) {
+      this.#initUI();
+    }
 
     this.resize(this.#canvas.clientWidth, this.#canvas.clientHeight);
   }
@@ -143,6 +148,47 @@ class TournamentBracket {
     console.log("TournamentBracket: Camera adapted to fit", bracketWidth, "x", bracketHeight, "at zoom", this.#camera.zoom);
   }
 
+  #initUI() {
+    this.#centerButton = document.createElement("button");
+    this.#centerButton.innerText = this.#theme.centerButtonText;
+    this.#centerButton.id = "tournament-center-btn";
+    
+    // Apply styles
+    Object.assign(this.#centerButton.style, {
+      position: "absolute",
+      bottom: "20px",
+      right: "20px",
+      zIndex: "10",
+      ...this.#theme.centerButtonStyle
+    });
+
+    // Hover effect
+    this.#centerButton.onmouseover = () => {
+      this.#centerButton.style.opacity = "0.9";
+      this.#centerButton.style.transform = "scale(1.05)";
+    };
+    this.#centerButton.onmouseout = () => {
+      this.#centerButton.style.opacity = "1";
+      this.#centerButton.style.transform = "scale(1)";
+    };
+
+    this.#centerButton.onclick = () => {
+      this.centerCamera();
+      this.render();
+    };
+
+    // Append to parent if possible, otherwise after canvas
+    if (this.#canvas.parentElement) {
+      // Ensure parent is positioned to host the absolute button
+      const parentStyle = window.getComputedStyle(this.#canvas.parentElement);
+      if (parentStyle.position === "static") {
+        this.#canvas.parentElement.style.position = "relative";
+      }
+      this.#canvas.parentElement.appendChild(this.#centerButton);
+    } else {
+      this.#canvas.after(this.#centerButton);
+    }
+  }
 }
 
 export default TournamentBracket;
