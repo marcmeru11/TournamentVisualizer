@@ -79,15 +79,14 @@ class TournamentBracket {
   }
 
   /**
-   * Resizes the canvas to match specified dimensions, its container, or window.
-   * @param {number} [width] - Optional width.
-   * @param {number} [height] - Optional height.
+   * Resizes canvas to match specified dimensions, its container, or window.
    */
-  resize(width, height) {
-    const w = width ?? window.innerWidth;
-    const h = height ?? window.innerHeight;
-    this.#renderer.resize(w, h);
-    this.render();
+  resize() {
+    const width = this.#canvas.clientWidth;
+    const height = this.#canvas.clientHeight;
+
+  this.#renderer.resize(width, height);
+  this.render();
   }
 
   #onInputUpdate(event) {
