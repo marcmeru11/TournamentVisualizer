@@ -12,6 +12,10 @@ try {
     boxBorderRadius: 15,
     roundSpacingX: 120,
     //layoutType: "split",
+    matchIndicatorType: "line",
+    matchIndicatorLabel: "VS",
+    matchIndicatorColor: "#1e293b",
+    matchIndicatorIconColor: "#38bdf8",
     centerGap: 250,
     showCenterButton: true
   });

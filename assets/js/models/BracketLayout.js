@@ -20,6 +20,7 @@ class BracketLayout {
    */
   generateShapes(tournament, ctx) {
     const shapes = [];
+    const indicators = []; // Separate list to ensure indicators are drawn on top
     const { rounds } = tournament;
 
     if (tournament.isEmpty) return shapes;
@@ -155,36 +156,88 @@ class BracketLayout {
           const xEnd = isRightSide ? nextX + nextMetric.width : nextX;
 
           // Orthogonal path
-          shapes.push(new LineShape(xStart, y + teamYsize/2, xMid, y + teamYsize/2, this.#theme.lineColor, this.#theme.lineWidth));
-          shapes.push(new LineShape(xMid, y + teamYsize/2, xMid, nextY, this.#theme.lineColor, this.#theme.lineWidth));
-          shapes.push(new LineShape(xMid, nextY, xEnd, nextY, this.#theme.lineColor, this.#theme.lineWidth));
+          // To ensure we use the correct matchUrl, we check both teams in the pair
+          const partnerData = teams[t % 2 === 0 ? t + 1 : t - 1];
+          const effectiveMatchUrl = matchUrl || (partnerData ? (typeof partnerData === "object" ? partnerData.matchUrl : null) : null);
 
-          // Add Match Link Indicator (only for the first team of the pair to avoid duplicates)
-          if (t % 2 === 0 && matchUrl) {
-            const indicatorSize = 20;
-            const indicatorX = xMid - indicatorSize / 2;
-            const indicatorY = (y + teamYsize / 2 + nextY) / 2 - indicatorSize / 2;
+          const pathColor = (effectiveMatchUrl && this.#theme.matchIndicatorType === "line") 
+            ? this.#theme.matchIndicatorColor 
+            : this.#theme.lineColor;
+
+          shapes.push(new LineShape(xStart, y + teamYsize/2, xMid, y + teamYsize/2, pathColor, this.#theme.lineWidth));
+          shapes.push(new LineShape(xMid, y + teamYsize/2, xMid, nextY, pathColor, this.#theme.lineWidth));
+          
+          // Draw the exit line and indicator only once per match (at t=0, 2, 4...)
+          if (t % 2 === 0) {
+            shapes.push(new LineShape(xMid, nextY, xEnd, nextY, pathColor, this.#theme.lineWidth));
             
-            const matchIndicator = new RectShape(
-              indicatorX, indicatorY, indicatorSize, indicatorSize, 
-              this.#theme.boxStrokeColor, true, this.#theme.boxStrokeColor, 1, indicatorSize / 2
-            );
-            matchIndicator.metadata = { url: matchUrl };
-            matchIndicator.cursor = "pointer";
-            shapes.push(matchIndicator);
-
-            // Add a small "L" or icon text
-            shapes.push(new TextShape(
-              indicatorX + indicatorSize / 2, indicatorY + indicatorSize / 2, "i",
-              this.#theme.boxFillColor, this.#theme.fontFamily, 12
-            ));
+            if (effectiveMatchUrl && this.#theme.matchIndicatorType !== "hidden") {
+              this.#addMatchIndicator(indicators, xMid, nextY, effectiveMatchUrl);
+            }
           }
         }
       }
     }
 
+    return [...shapes, ...indicators];
+  }
 
-    return shapes;
+  /**
+   * Helper to add a match indicator shape based on theme settings.
+   */
+  #addMatchIndicator(shapes, x, y, url) {
+    const { 
+      matchIndicatorType, matchIndicatorSize, matchIndicatorColor, 
+      matchIndicatorIconColor, matchIndicatorLabel, fontFamily 
+    } = this.#theme;
+
+    if (matchIndicatorType === "pill") {
+      const h = matchIndicatorSize;
+      const w = h * 2; // Pill is typically wider
+      const rect = new RectShape(
+        x - w / 2, y - h / 2, w, h, 
+        matchIndicatorColor, true, matchIndicatorColor, 1, h / 2
+      );
+      rect.metadata = { url };
+      rect.cursor = "pointer";
+      rect.ignoreInBounds = true;
+      shapes.push(rect);
+
+      const text = new TextShape(
+        x, y, matchIndicatorLabel, 
+        matchIndicatorIconColor, fontFamily, Math.floor(h * 0.6)
+      );
+      text.ignoreInBounds = true;
+      shapes.push(text);
+    } else if (matchIndicatorType === "circle") {
+      const r = matchIndicatorSize / 2;
+      const circle = new RectShape(
+        x - r, y - r, r * 2, r * 2, 
+        matchIndicatorColor, true, matchIndicatorColor, 1, r
+      );
+      circle.metadata = { url };
+      circle.cursor = "pointer";
+      circle.ignoreInBounds = true;
+      shapes.push(circle);
+
+      const text = new TextShape(
+        x, y, matchIndicatorLabel, 
+        matchIndicatorIconColor, fontFamily, Math.floor(matchIndicatorSize * 0.6)
+      );
+      text.ignoreInBounds = true;
+      shapes.push(text);
+    } else if (matchIndicatorType === "line") {
+      // Invisible hotspot for interaction in line-only mode
+      const size = matchIndicatorSize;
+      const hotspot = new RectShape(
+        x - size / 2, y - size / 2, size, size,
+        "transparent", true, "transparent", 0, size / 2
+      );
+      hotspot.metadata = { url };
+      hotspot.cursor = "pointer";
+      hotspot.ignoreInBounds = true;
+      shapes.push(hotspot);
+    }
   }
 
   /**

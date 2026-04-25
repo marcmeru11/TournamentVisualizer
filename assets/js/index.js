@@ -143,6 +143,7 @@ class TournamentBracket {
 
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     for (const shape of this.#sceneShapes) {
+      if (shape.ignoreInBounds) continue;
       if (shape.x !== undefined) {
         minX = Math.min(minX, shape.x);
         minY = Math.min(minY, shape.y);

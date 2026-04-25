@@ -43,6 +43,13 @@ class TournamentTheme {
       boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
       ...options.centerButtonStyle
     };
+
+    // Match Indicators
+    this.matchIndicatorType = options.matchIndicatorType || "circle"; // 'circle', 'pill', 'line', 'hidden'
+    this.matchIndicatorSize = options.matchIndicatorSize ?? 20;
+    this.matchIndicatorColor = options.matchIndicatorColor || this.boxStrokeColor;
+    this.matchIndicatorIconColor = options.matchIndicatorIconColor || "#ffffff";
+    this.matchIndicatorLabel = options.matchIndicatorLabel || "i";
   }
 
   /**
@@ -65,7 +72,11 @@ class TournamentTheme {
       textColor: "#f8fafc",
       lineColor: "#334155",
       lineWidth: 2,
-      fontFamily: "sans-serif"
+      fontFamily: "sans-serif",
+      matchIndicatorType: "pill",
+      matchIndicatorColor: "#1e293b",
+      matchIndicatorIconColor: "#38bdf8",
+      matchIndicatorLabel: "VS"
     });
   }
 
