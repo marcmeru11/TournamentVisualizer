@@ -69,7 +69,8 @@ class Camera {
   }
 
   apply(ctx) {
-    ctx.setTransform(this.#zoom, 0, 0, this.#zoom, this.#x, this.#y);
+    const dpr = window.devicePixelRatio || 1;
+    ctx.setTransform(this.#zoom * dpr, 0, 0, this.#zoom * dpr, this.#x * dpr, this.#y * dpr);
   }
 
   reset(ctx) {

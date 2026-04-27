@@ -9,9 +9,9 @@ import TournamentTheme from "./models/TournamentTheme.js";
 
 try {
   const customTheme = TournamentTheme.DARK.extend({
-    boxBorderRadius: 15,
+    boxBorderRadius: 10,
     roundSpacingX: 120,
-    //layoutType: "split",
+    layoutType: "split",
     matchIndicatorType: "line",
     matchIndicatorLabel: "VS",
     matchIndicatorColor: "#1e293b",

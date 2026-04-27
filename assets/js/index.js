@@ -155,8 +155,8 @@ class TournamentBracket {
     const bracketWidth = maxX - minX;
     const bracketHeight = maxY - minY;
     
-    const canvasWidth = this.#canvas.width;
-    const canvasHeight = this.#canvas.height;
+    const canvasWidth = this.#canvas.clientWidth;
+    const canvasHeight = this.#canvas.clientHeight;
 
     // Update camera limits
     this.#camera.setBounds(minX, minY, maxX, maxY);

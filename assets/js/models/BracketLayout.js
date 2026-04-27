@@ -19,11 +19,12 @@ class BracketLayout {
    * @param {CanvasRenderingContext2D} ctx - Needed for text measurement.
    */
   generateShapes(tournament, ctx) {
-    const shapes = [];
+    const lines = [];
+    const boxes = [];
     const indicators = []; // Separate list to ensure indicators are drawn on top
     const { rounds } = tournament;
 
-    if (tournament.isEmpty) return shapes;
+    if (tournament.isEmpty) return [];
 
     const roundCount = rounds.length;
     const isSplit = this.#theme.layoutType === "split" && roundCount > 1;
@@ -106,7 +107,7 @@ class BracketLayout {
           mainBox.metadata = { url };
           mainBox.cursor = "pointer";
         }
-        shapes.push(mainBox);
+        boxes.push(mainBox);
 
         // Add Score Box (Symmetric)
         if (hasScore) {
@@ -123,9 +124,9 @@ class BracketLayout {
             scoreBox.metadata = { url };
             scoreBox.cursor = "pointer";
           }
-          shapes.push(scoreBox);
+          boxes.push(scoreBox);
 
-          shapes.push(new TextShape(
+          boxes.push(new TextShape(
             scoreX + scoreWidth / 2, y + teamYsize / 2, score.toString(),
             this.#theme.scoreTextColor, this.#theme.fontFamily, this.#theme.fontSize
           ));
@@ -133,7 +134,7 @@ class BracketLayout {
 
         // Add Team Name Text
         const nameX = isRightSide ? x + scoreWidth : x;
-        shapes.push(new TextShape(
+        boxes.push(new TextShape(
           nameX + effectiveNameWidth / 2, y + teamYsize / 2, teamName,
           this.#theme.textColor, this.#theme.fontFamily, this.#theme.fontSize
         ));
@@ -164,12 +165,12 @@ class BracketLayout {
             ? this.#theme.matchIndicatorColor 
             : this.#theme.lineColor;
 
-          shapes.push(new LineShape(xStart, y + teamYsize/2, xMid, y + teamYsize/2, pathColor, this.#theme.lineWidth));
-          shapes.push(new LineShape(xMid, y + teamYsize/2, xMid, nextY, pathColor, this.#theme.lineWidth));
+          lines.push(new LineShape(xStart, y + teamYsize/2, xMid, y + teamYsize/2, pathColor, this.#theme.lineWidth));
+          lines.push(new LineShape(xMid, y + teamYsize/2, xMid, nextY, pathColor, this.#theme.lineWidth));
           
           // Draw the exit line and indicator only once per match (at t=0, 2, 4...)
           if (t % 2 === 0) {
-            shapes.push(new LineShape(xMid, nextY, xEnd, nextY, pathColor, this.#theme.lineWidth));
+            lines.push(new LineShape(xMid, nextY, xEnd, nextY, pathColor, this.#theme.lineWidth));
             
             if (effectiveMatchUrl && this.#theme.matchIndicatorType !== "hidden") {
               this.#addMatchIndicator(indicators, xMid, nextY, effectiveMatchUrl);
@@ -179,7 +180,7 @@ class BracketLayout {
       }
     }
 
-    return [...shapes, ...indicators];
+    return [...lines, ...boxes, ...indicators];
   }
 
   /**

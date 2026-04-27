@@ -48,8 +48,11 @@ class Renderer {
    * Resizes the canvas and notifies if a re-render might be needed.
    */
   resize(width, height) {
-    this.#canvas.width = width;
-    this.#canvas.height = height;
+    const dpr = window.devicePixelRatio || 1;
+    this.#canvas.width = width * dpr;
+    this.#canvas.height = height * dpr;
+    this.#canvas.style.width = width + "px";
+    this.#canvas.style.height = height + "px";
   }
 }
 
