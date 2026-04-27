@@ -32,7 +32,8 @@ class BracketLayout {
     // 1. Calculate per-round widths and X positions (base linear metrics)
     const roundMetrics = this.#calculateRoundMetrics(rounds, ctx);
 
-    const initialTeams = rounds[0].teams.length;
+    let initialTeams = 0;
+    for (const m of rounds[0].matches) initialTeams += m.teams.length;
     const bracketSize = 2 ** Math.ceil(Math.log2(initialTeams));
     const { teamYsize, teamSpacingY, centerGap } = this.#theme;
     const slotHeight = teamYsize + teamSpacingY;
@@ -82,8 +83,9 @@ class BracketLayout {
 
     for (let r = 0; r < roundCount; r++) {
       const roundData = rounds[r];
-      const teams = roundData.teams;
-      const itemsInRound = teams.length;
+      const matches = roundData.matches;
+      let itemsInRound = 0;
+      for (const m of matches) itemsInRound += m.teams.length;
 
       // Draw Round Header
       if (roundData.name) {
@@ -118,116 +120,119 @@ class BracketLayout {
         }
       }
 
-      for (let t = 0; t < itemsInRound; t++) {
-        const teamData = teams[t];
-        const teamName = typeof teamData === "string" ? teamData : teamData.name;
-        const score = teamData.score !== undefined ? teamData.score : null;
-        const url = teamData.url || null;
-        const matchUrl = teamData.matchUrl || null;
-        
-        const x = getX(r, t, itemsInRound);
-        const y = getTeamY(r, t, itemsInRound);
-        
-        const width = roundMetrics[r].width;
-        const hasScore = score !== null;
-        const scoreWidth = hasScore ? this.#theme.scoreBoxWidth : 0;
-        const effectiveNameWidth = width - scoreWidth;
-        const isRightSide = isSplit && r < roundCount - 1 && t >= itemsInRound / 2;
+      let t = 0;
+      for (let mIndex = 0; mIndex < matches.length; mIndex++) {
+        const matchData = matches[mIndex];
+        const matchUrl = matchData.url || null;
 
-        // Add Main Box
-        const hoverGroupId = `team-${r}-${t}`;
-        
-        const mainBox = new RectShape(
-          x, y, width, teamYsize, this.#theme.boxFillColor, true, 
-          this.#theme.boxStrokeColor, this.#theme.boxLineWidth, this.#theme.boxBorderRadius
-        );
-        mainBox.hoverGroupId = hoverGroupId;
-        mainBox.hoverColor = this.#theme.boxHoverFillColor;
-        mainBox.hoverStroke = this.#theme.boxHoverStrokeColor;
+        for (let i = 0; i < matchData.teams.length; i++) {
+          const teamData = matchData.teams[i];
+          const teamName = typeof teamData === "string" ? teamData : teamData.name;
+          const score = teamData.score !== undefined ? teamData.score : null;
+          const url = teamData.url || null;
+          
+          const x = getX(r, t, itemsInRound);
+          const y = getTeamY(r, t, itemsInRound);
+          
+          const width = roundMetrics[r].width;
+          const hasScore = score !== null;
+          const scoreWidth = hasScore ? this.#theme.scoreBoxWidth : 0;
+          const effectiveNameWidth = width - scoreWidth;
+          const isRightSide = isSplit && r < roundCount - 1 && t >= itemsInRound / 2;
 
-        if (url) {
-          mainBox.metadata = { url };
-          mainBox.cursor = "pointer";
-        }
-        boxes.push(mainBox);
-
-        // Add Score Box (Symmetric)
-        if (hasScore) {
-          const scoreX = isRightSide ? x : x + effectiveNameWidth;
-          const borderRadius = isRightSide 
-            ? [this.#theme.boxBorderRadius, 0, 0, this.#theme.boxBorderRadius]
-            : [0, this.#theme.boxBorderRadius, this.#theme.boxBorderRadius, 0];
-
-          const scoreBox = new RectShape(
-            scoreX, y, scoreWidth, teamYsize, this.#theme.scoreBoxFillColor, true,
-            this.#theme.boxStrokeColor, this.#theme.boxLineWidth, borderRadius
+          // Add Main Box
+          const hoverGroupId = `team-${r}-${t}`;
+          
+          const mainBox = new RectShape(
+            x, y, width, teamYsize, this.#theme.boxFillColor, true, 
+            this.#theme.boxStrokeColor, this.#theme.boxLineWidth, this.#theme.boxBorderRadius
           );
-          scoreBox.hoverGroupId = hoverGroupId;
-          scoreBox.hoverColor = this.#theme.scoreBoxHoverFillColor;
-          scoreBox.hoverStroke = this.#theme.boxHoverStrokeColor;
+          mainBox.hoverGroupId = hoverGroupId;
+          mainBox.hoverColor = this.#theme.boxHoverFillColor;
+          mainBox.hoverStroke = this.#theme.boxHoverStrokeColor;
 
           if (url) {
-            scoreBox.metadata = { url };
-            scoreBox.cursor = "pointer";
+            mainBox.metadata = { url };
+            mainBox.cursor = "pointer";
           }
-          boxes.push(scoreBox);
+          boxes.push(mainBox);
 
-          const scoreText = new TextShape(
-            scoreX + scoreWidth / 2, y + teamYsize / 2, score.toString(),
-            this.#theme.scoreTextColor, this.#theme.fontFamily, this.#theme.fontSize
+          // Add Score Box (Symmetric)
+          if (hasScore) {
+            const scoreX = isRightSide ? x : x + effectiveNameWidth;
+            const borderRadius = isRightSide 
+              ? [this.#theme.boxBorderRadius, 0, 0, this.#theme.boxBorderRadius]
+              : [0, this.#theme.boxBorderRadius, this.#theme.boxBorderRadius, 0];
+
+            const scoreBox = new RectShape(
+              scoreX, y, scoreWidth, teamYsize, this.#theme.scoreBoxFillColor, true,
+              this.#theme.boxStrokeColor, this.#theme.boxLineWidth, borderRadius
+            );
+            scoreBox.hoverGroupId = hoverGroupId;
+            scoreBox.hoverColor = this.#theme.scoreBoxHoverFillColor;
+            scoreBox.hoverStroke = this.#theme.boxHoverStrokeColor;
+
+            if (url) {
+              scoreBox.metadata = { url };
+              scoreBox.cursor = "pointer";
+            }
+            boxes.push(scoreBox);
+
+            const scoreText = new TextShape(
+              scoreX + scoreWidth / 2, y + teamYsize / 2, score.toString(),
+              this.#theme.scoreTextColor, this.#theme.fontFamily, this.#theme.fontSize
+            );
+            scoreText.hoverGroupId = hoverGroupId;
+            scoreText.hoverColor = this.#theme.scoreTextColorHover;
+            boxes.push(scoreText);
+          }
+
+          // Add Team Name Text
+          const nameX = isRightSide ? x + scoreWidth : x;
+          const nameText = new TextShape(
+            nameX + effectiveNameWidth / 2, y + teamYsize / 2, teamName,
+            this.#theme.textColor, this.#theme.fontFamily, this.#theme.fontSize
           );
-          scoreText.hoverGroupId = hoverGroupId;
-          scoreText.hoverColor = this.#theme.scoreTextColorHover;
-          boxes.push(scoreText);
-        }
+          nameText.hoverGroupId = hoverGroupId;
+          nameText.hoverColor = this.#theme.textColorHover;
+          boxes.push(nameText);
 
-        // Add Team Name Text
-        const nameX = isRightSide ? x + scoreWidth : x;
-        const nameText = new TextShape(
-          nameX + effectiveNameWidth / 2, y + teamYsize / 2, teamName,
-          this.#theme.textColor, this.#theme.fontFamily, this.#theme.fontSize
-        );
-        nameText.hoverGroupId = hoverGroupId;
-        nameText.hoverColor = this.#theme.textColorHover;
-        boxes.push(nameText);
-
-        // Add Progress Connectors and Match Link
-        if (r < roundCount - 1) {
-          const isLastSplitRound = isSplit && r === roundCount - 2;
-          const nextMetric = roundMetrics[r + 1];
-          
-          let nextT = Math.floor(t / 2);
-          let nextRoundTotal = rounds[r + 1].teams.length;
-          const nextX = getX(r + 1, nextT, nextRoundTotal);
-          const nextY = getTeamY(r + 1, nextT, nextRoundTotal) + teamYsize / 2;
-          
-          const midGap = this.#theme.roundSpacingX / 2;
-          const xStart = isRightSide ? x : x + width;
-          const xDir = isRightSide ? -1 : 1;
-          const xMid = isLastSplitRound ? (isRightSide ? x - (centerGap / 4) : x + width + (centerGap / 4)) : xStart + (midGap * xDir);
-          
-          const xEnd = isRightSide ? nextX + nextMetric.width : nextX;
-
-          // Orthogonal path
-          // To ensure we use the correct matchUrl, we check both teams in the pair
-          const partnerData = teams[t % 2 === 0 ? t + 1 : t - 1];
-          const effectiveMatchUrl = matchUrl || (partnerData ? (typeof partnerData === "object" ? partnerData.matchUrl : null) : null);
-
-          const pathColor = (effectiveMatchUrl && this.#theme.matchIndicatorType === "line") 
-            ? this.#theme.matchIndicatorColor 
-            : this.#theme.lineColor;
-
-          lines.push(new LineShape(xStart, y + teamYsize/2, xMid, y + teamYsize/2, pathColor, this.#theme.lineWidth));
-          lines.push(new LineShape(xMid, y + teamYsize/2, xMid, nextY, pathColor, this.#theme.lineWidth));
-          
-          // Draw the exit line and indicator only once per match (at t=0, 2, 4...)
-          if (t % 2 === 0) {
-            lines.push(new LineShape(xMid, nextY, xEnd, nextY, pathColor, this.#theme.lineWidth));
+          // Add Progress Connectors and Match Link
+          if (r < roundCount - 1) {
+            const isLastSplitRound = isSplit && r === roundCount - 2;
+            const nextMetric = roundMetrics[r + 1];
             
-            if (this.#theme.matchIndicatorType !== "hidden") {
-              this.#addMatchIndicator(indicators, xMid, nextY, effectiveMatchUrl || null);
+            let nextT = mIndex;
+            let nextRoundTotal = 0;
+            for (const nextM of rounds[r + 1].matches) nextRoundTotal += nextM.teams.length;
+            
+            const nextX = getX(r + 1, nextT, nextRoundTotal);
+            const nextY = getTeamY(r + 1, nextT, nextRoundTotal) + teamYsize / 2;
+            
+            const midGap = this.#theme.roundSpacingX / 2;
+            const xStart = isRightSide ? x : x + width;
+            const xDir = isRightSide ? -1 : 1;
+            const xMid = isLastSplitRound ? (isRightSide ? x - (centerGap / 4) : x + width + (centerGap / 4)) : xStart + (midGap * xDir);
+            
+            const xEnd = isRightSide ? nextX + nextMetric.width : nextX;
+
+            const pathColor = (matchUrl && this.#theme.matchIndicatorType === "line") 
+              ? this.#theme.matchIndicatorColor 
+              : this.#theme.lineColor;
+
+            lines.push(new LineShape(xStart, y + teamYsize/2, xMid, y + teamYsize/2, pathColor, this.#theme.lineWidth));
+            lines.push(new LineShape(xMid, y + teamYsize/2, xMid, nextY, pathColor, this.#theme.lineWidth));
+            
+            // Draw the exit line and indicator only once per match (i === 0)
+            if (i === 0) {
+              lines.push(new LineShape(xMid, nextY, xEnd, nextY, pathColor, this.#theme.lineWidth));
+              
+              if (this.#theme.matchIndicatorType !== "hidden") {
+                this.#addMatchIndicator(indicators, xMid, nextY, matchUrl || null);
+              }
             }
           }
+          t++;
         }
       }
     }
@@ -323,16 +328,18 @@ class BracketLayout {
 
       ctx.font = `${this.#theme.fontSize}px ${this.#theme.fontFamily}`;
 
-      for (const teamData of roundData.teams) {
-        const teamName = typeof teamData === "string" ? teamData : teamData.name;
-        const measuredWidth = ctx ? ctx.measureText(teamName).width : teamName.length * 8;
-        const requiredWidth = measuredWidth + this.#theme.paddingX;
-        
-        // Add score width if present
-        const finalWidth = teamData.score !== undefined ? requiredWidth + this.#theme.scoreBoxWidth : requiredWidth;
+      for (const match of roundData.matches) {
+        for (const teamData of match.teams) {
+          const teamName = typeof teamData === "string" ? teamData : teamData.name;
+          const measuredWidth = ctx ? ctx.measureText(teamName).width : teamName.length * 8;
+          const requiredWidth = measuredWidth + this.#theme.paddingX;
+          
+          // Add score width if present
+          const finalWidth = teamData.score !== undefined ? requiredWidth + this.#theme.scoreBoxWidth : requiredWidth;
 
-        if (finalWidth > maxTextWidth) {
-          maxTextWidth = finalWidth;
+          if (finalWidth > maxTextWidth) {
+            maxTextWidth = finalWidth;
+          }
         }
       }
 

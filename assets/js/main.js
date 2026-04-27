@@ -9,9 +9,9 @@ import TournamentTheme from "./models/TournamentTheme.js";
 
 try {
   const customTheme = TournamentTheme.DARK.extend({
-    backgroundColor: "#1b1b1b", // Minimalist dark gray
-    boxFillColor: "#2a2a2a", // Elevated dark gray
-    boxStrokeColor: "transparent", // No border for clean look
+    backgroundColor: "#1b1b1b",
+    boxFillColor: "#2a2a2a",
+    boxStrokeColor: "transparent",
     boxLineWidth: 0,
     boxBorderRadius: 12,
     textColor: "#ffffff",
@@ -26,7 +26,10 @@ try {
     paddingX: 20,
     
     // Matches
-    matchIndicatorType: "hidden", // No indicator
+    matchIndicatorType: "pill",
+    matchIndicatorLabel: "VS",
+    matchIndicatorColor: "#1f2833",
+    matchIndicatorIconColor: "#66fcf1",
     
     // Hover Effects
     boxHoverFillColor: "#3a3a3a",
@@ -36,7 +39,7 @@ try {
     scoreTextColorHover: "#ffffff",
 
     // Score box
-    scoreBoxFillColor: "#2a2a2a", // Same as box for unified pill look
+    scoreBoxFillColor: "#2a2a2a",
     scoreTextColor: "#ffffff",
     
     // Round Headers
@@ -53,54 +56,95 @@ try {
       borderRadius: "20px",
       fontWeight: "normal",
       boxShadow: "none"
-    },
-    matchIndicatorType: "pill",
-    matchIndicatorLabel: "VS",
-    matchIndicatorColor: "#1f2833",
-    matchIndicatorIconColor: "#66fcf1",
+    }
   });
 
   const bracket = new TournamentBracket("canvas", customTheme);
   
-  const demoData = [
-    {
-      name: "Cuartos de final",
-      teams: [
-        { name: "LIV", score: 0 }, 
-        { name: "GAL", score: 1 },
-        { name: "CHE", score: 2 }, 
-        { name: "PSG", score: 5 },
-        { name: "RMA", score: 3 }, 
-        { name: "FCB", score: 1 },
-        { name: "MCI", score: 2 }, 
-        { name: "BAY", score: 2 }
-      ]
+  const tournamentData = {
+    teams: {
+      "LIV": { name: "Liverpool", url: "https://example.com/liverpool" },
+      "GAL": { name: "Galatasaray", url: "https://example.com/galatasaray" },
+      "CHE": { name: "Chelsea", url: "https://example.com/chelsea" },
+      "PSG": { name: "Paris SG", url: "https://example.com/psg" },
+      "RMA": { name: "Real Madrid", url: "https://example.com/real-madrid" },
+      "FCB": { name: "FC Barcelona", url: "https://example.com/barcelona" },
+      "MCI": { name: "Man. City", url: "https://example.com/man-city" },
+      "BAY": { name: "Bayern M.", url: "https://example.com/bayern" }
     },
-    {
-      name: "Semifinales",
-      teams: [
-        { name: "LIV", score: 0 }, 
-        { name: "PSG", score: 2, matchUrl: "https://example.com/match2" },
-        { name: "RMA", score: 1, matchUrl: "https://example.com/match3" }, 
-        { name: "BAY", score: 0, matchUrl: "https://example.com/match4" }
-      ]
-    },
-    {
-      name: "Final",
-      teams: [
-        { name: "PSG", score: 1 }, 
-        { name: "RMA", score: 2 }
-      ]
-    },
-    {
-      teams: [
-        { name: "RMA" }
-      ]
-    }
-  ];
+    championId: "RMA",
+    rounds: [
+      {
+        name: "Cuartos de final",
+        matches: [
+          {
+            id: "qf1",
+            teams: [
+              { id: "LIV", score: 0 },
+              { id: "GAL", score: 1 }
+            ]
+          },
+          {
+            id: "qf2",
+            teams: [
+              { id: "CHE", score: 2 },
+              { id: "PSG", score: 5 }
+            ]
+          },
+          {
+            id: "qf3",
+            teams: [
+              { id: "RMA", score: 3 },
+              { id: "FCB", score: 1 }
+            ]
+          },
+          {
+            id: "qf4",
+            teams: [
+              { id: "MCI", score: 2 },
+              { id: "BAY", score: 2 }
+            ]
+          }
+        ]
+      },
+      {
+        name: "Semifinales",
+        matches: [
+          {
+            id: "sf1",
+            url: "https://example.com/match-sf1",
+            teams: [
+              { id: "GAL", score: 0 },
+              { id: "PSG", score: 2 }
+            ]
+          },
+          {
+            id: "sf2",
+            url: "https://example.com/match-sf2",
+            teams: [
+              { id: "RMA", score: 1 },
+              { id: "BAY", score: 0 }
+            ]
+          }
+        ]
+      },
+      {
+        name: "Final",
+        textColor: "#66fcf1",
+        matches: [
+          {
+            id: "final",
+            teams: [
+              { id: "PSG", score: 1 },
+              { id: "RMA", score: 2 }
+            ]
+          }
+        ]
+      }
+    ]
+  };
 
-
-  bracket.setData(demoData);
+  bracket.setData(tournamentData);
 
   console.log("Tournament Bracket Module initialized successfully.");
 

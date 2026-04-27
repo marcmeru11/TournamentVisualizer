@@ -63,14 +63,11 @@ class TournamentBracket {
 
   /**
    * Updates the tournament data and regenerates the layout.
-   * @param {Array<Array<string|Object>>} rounds - The tournament rounds and teams.
+   * @param {Object|Array} data - Tournament data (new object format or legacy array).
    */
-  setData(rounds) {
-    console.log("TournamentBracket: Setting data...", rounds);
-    this.#tournament.clear();
-    for (const teams of rounds) {
-      this.#tournament.addRound(teams);
-    }
+  setData(data) {
+    console.log("TournamentBracket: Setting data...", data);
+    this.#tournament = new Tournament(data);
     this.#updateScene();
   }
 
