@@ -11,6 +11,10 @@ class RectShape {
     this.radius = radius;
     this.metadata = null;
     this.cursor = "default";
+    this.isHovered = false;
+    this.hoverGroupId = null;
+    this.hoverColor = null;
+    this.hoverStroke = null;
   }
 
   draw(ctx, camera) {
@@ -24,11 +28,11 @@ class RectShape {
     }
 
     if (this.filled) {
-      ctx.fillStyle = this.color;
+      ctx.fillStyle = (this.isHovered && this.hoverColor) ? this.hoverColor : this.color;
       ctx.fill();
     }
 
-    ctx.strokeStyle = this.stroke;
+    ctx.strokeStyle = (this.isHovered && this.hoverStroke) ? this.hoverStroke : this.stroke;
     ctx.lineWidth = this.lineWidth / camera.zoom;
     ctx.stroke();
   }

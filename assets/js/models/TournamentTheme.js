@@ -6,10 +6,13 @@ class TournamentTheme {
   constructor(options = {}) {
     this.backgroundColor = options.backgroundColor || null;
     this.boxFillColor = options.boxFillColor || "#dbeafe";
+    this.boxHoverFillColor = options.boxHoverFillColor || this.boxFillColor;
     this.boxStrokeColor = options.boxStrokeColor || "#1e293b";
+    this.boxHoverStrokeColor = options.boxHoverStrokeColor || this.boxStrokeColor;
     this.boxLineWidth = options.boxLineWidth ?? 2;
     this.boxBorderRadius = options.boxBorderRadius ?? 0;
     this.textColor = options.textColor || "#111827";
+    this.textColorHover = options.textColorHover || this.textColor;
     this.lineColor = options.lineColor || "#0f172a";
     this.lineWidth = options.lineWidth ?? 3;
     this.fontSize = options.fontSize ?? 16;
@@ -21,7 +24,9 @@ class TournamentTheme {
     this.paddingX = options.paddingX ?? 24;
     // Score
     this.scoreBoxFillColor = options.scoreBoxFillColor || "#1e293b";
+    this.scoreBoxHoverFillColor = options.scoreBoxHoverFillColor || this.scoreBoxFillColor;
     this.scoreTextColor = options.scoreTextColor || "#ffffff";
+    this.scoreTextColorHover = options.scoreTextColorHover || this.scoreTextColor;
     this.scoreBoxWidth = options.scoreBoxWidth ?? 30;
     // Round Headers
     this.roundHeaderFontSize = options.roundHeaderFontSize ?? 18;

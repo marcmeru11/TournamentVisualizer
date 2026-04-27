@@ -6,10 +6,13 @@ class TextShape {
     this.color = color;
     this.font = font;
     this.fontSize = fontSize;
+    this.isHovered = false;
+    this.hoverGroupId = null;
+    this.hoverColor = null;
   }
 
   draw(ctx) {
-    ctx.fillStyle = this.color;
+    ctx.fillStyle = (this.isHovered && this.hoverColor) ? this.hoverColor : this.color;
     ctx.font = `${this.fontSize}px ${this.font}`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";

@@ -135,10 +135,16 @@ class BracketLayout {
         const isRightSide = isSplit && r < roundCount - 1 && t >= itemsInRound / 2;
 
         // Add Main Box
+        const hoverGroupId = `team-${r}-${t}`;
+        
         const mainBox = new RectShape(
           x, y, width, teamYsize, this.#theme.boxFillColor, true, 
           this.#theme.boxStrokeColor, this.#theme.boxLineWidth, this.#theme.boxBorderRadius
         );
+        mainBox.hoverGroupId = hoverGroupId;
+        mainBox.hoverColor = this.#theme.boxHoverFillColor;
+        mainBox.hoverStroke = this.#theme.boxHoverStrokeColor;
+
         if (url) {
           mainBox.metadata = { url };
           mainBox.cursor = "pointer";
@@ -156,24 +162,34 @@ class BracketLayout {
             scoreX, y, scoreWidth, teamYsize, this.#theme.scoreBoxFillColor, true,
             this.#theme.boxStrokeColor, this.#theme.boxLineWidth, borderRadius
           );
+          scoreBox.hoverGroupId = hoverGroupId;
+          scoreBox.hoverColor = this.#theme.scoreBoxHoverFillColor;
+          scoreBox.hoverStroke = this.#theme.boxHoverStrokeColor;
+
           if (url) {
             scoreBox.metadata = { url };
             scoreBox.cursor = "pointer";
           }
           boxes.push(scoreBox);
 
-          boxes.push(new TextShape(
+          const scoreText = new TextShape(
             scoreX + scoreWidth / 2, y + teamYsize / 2, score.toString(),
             this.#theme.scoreTextColor, this.#theme.fontFamily, this.#theme.fontSize
-          ));
+          );
+          scoreText.hoverGroupId = hoverGroupId;
+          scoreText.hoverColor = this.#theme.scoreTextColorHover;
+          boxes.push(scoreText);
         }
 
         // Add Team Name Text
         const nameX = isRightSide ? x + scoreWidth : x;
-        boxes.push(new TextShape(
+        const nameText = new TextShape(
           nameX + effectiveNameWidth / 2, y + teamYsize / 2, teamName,
           this.#theme.textColor, this.#theme.fontFamily, this.#theme.fontSize
-        ));
+        );
+        nameText.hoverGroupId = hoverGroupId;
+        nameText.hoverColor = this.#theme.textColorHover;
+        boxes.push(nameText);
 
         // Add Progress Connectors and Match Link
         if (r < roundCount - 1) {
@@ -208,8 +224,8 @@ class BracketLayout {
           if (t % 2 === 0) {
             lines.push(new LineShape(xMid, nextY, xEnd, nextY, pathColor, this.#theme.lineWidth));
             
-            if (effectiveMatchUrl && this.#theme.matchIndicatorType !== "hidden") {
-              this.#addMatchIndicator(indicators, xMid, nextY, effectiveMatchUrl);
+            if (this.#theme.matchIndicatorType !== "hidden") {
+              this.#addMatchIndicator(indicators, xMid, nextY, effectiveMatchUrl || null);
             }
           }
         }
@@ -235,8 +251,10 @@ class BracketLayout {
         x - w / 2, y - h / 2, w, h, 
         matchIndicatorColor, true, matchIndicatorColor, 1, h / 2
       );
-      rect.metadata = { url };
-      rect.cursor = "pointer";
+      if (url) {
+        rect.metadata = { url };
+        rect.cursor = "pointer";
+      }
       rect.ignoreInBounds = true;
       shapes.push(rect);
 
@@ -252,8 +270,10 @@ class BracketLayout {
         x - r, y - r, r * 2, r * 2, 
         matchIndicatorColor, true, matchIndicatorColor, 1, r
       );
-      circle.metadata = { url };
-      circle.cursor = "pointer";
+      if (url) {
+        circle.metadata = { url };
+        circle.cursor = "pointer";
+      }
       circle.ignoreInBounds = true;
       shapes.push(circle);
 
@@ -270,8 +290,10 @@ class BracketLayout {
         x - size / 2, y - size / 2, size, size,
         "transparent", true, "transparent", 0, size / 2
       );
-      hotspot.metadata = { url };
-      hotspot.cursor = "pointer";
+      if (url) {
+        hotspot.metadata = { url };
+        hotspot.cursor = "pointer";
+      }
       hotspot.ignoreInBounds = true;
       shapes.push(hotspot);
     }

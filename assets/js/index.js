@@ -20,6 +20,7 @@ class TournamentBracket {
   #theme;
   #sceneShapes = [];
   #centerButton = null;
+  #hoveredGroupId = null;
 
   /**
    * @param {HTMLCanvasElement|string} canvasElement - The canvas element or its ID.
@@ -113,6 +114,27 @@ class TournamentBracket {
       } else {
         this.#canvas.style.cursor = "default";
       }
+
+      // Handle hover groups
+      const groupId = shape ? shape.hoverGroupId : null;
+      if (groupId !== this.#hoveredGroupId) {
+        this.#hoveredGroupId = groupId;
+        
+        let needsRender = false;
+        for (const s of this.#sceneShapes) {
+          if (s.hoverGroupId) {
+            const isHovered = (s.hoverGroupId === groupId);
+            if (s.isHovered !== isHovered) {
+              s.isHovered = isHovered;
+              needsRender = true;
+            }
+          }
+        }
+        if (needsRender) {
+          this.render();
+        }
+      }
+
     } else if (event.type === "click") {
       if (shape && shape.metadata && shape.metadata.url) {
         console.log("TournamentBracket: Opening URL", shape.metadata.url);
