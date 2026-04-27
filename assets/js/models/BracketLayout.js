@@ -32,7 +32,7 @@ class BracketLayout {
     // 1. Calculate per-round widths and X positions (base linear metrics)
     const roundMetrics = this.#calculateRoundMetrics(rounds, ctx);
 
-    const initialTeams = rounds[0].length;
+    const initialTeams = rounds[0].teams.length;
     const bracketSize = 2 ** Math.ceil(Math.log2(initialTeams));
     const { teamYsize, teamSpacingY, centerGap } = this.#theme;
     const slotHeight = teamYsize + teamSpacingY;
@@ -78,9 +78,45 @@ class BracketLayout {
       return topMargin + effectiveIndex * step;
     };
 
+    const bracketMinY = getTeamY(0, 0, initialTeams);
+
     for (let r = 0; r < roundCount; r++) {
-      const teams = rounds[r];
+      const roundData = rounds[r];
+      const teams = roundData.teams;
       const itemsInRound = teams.length;
+
+      // Draw Round Header
+      if (roundData.name) {
+        const headerY = bracketMinY - this.#theme.roundHeaderMarginBottom;
+        
+        const drawHeader = (xCenter, url) => {
+          if (url && ctx) {
+            ctx.font = `${this.#theme.roundHeaderFontSize}px ${this.#theme.fontFamily}`;
+            const textWidth = ctx.measureText(roundData.name).width;
+            const h = this.#theme.roundHeaderFontSize * 1.5;
+            const rect = new RectShape(
+              xCenter - textWidth / 2 - 10, headerY - h / 2, textWidth + 20, h,
+              "transparent", true, "transparent", 0, 0
+            );
+            rect.metadata = { url };
+            rect.cursor = "pointer";
+            boxes.push(rect);
+          }
+          boxes.push(new TextShape(
+            xCenter, headerY, roundData.name, 
+            roundData.textColor || this.#theme.roundHeaderTextColor, 
+            this.#theme.fontFamily, this.#theme.roundHeaderFontSize
+          ));
+        };
+
+        const leftX = getX(r, 0, itemsInRound) + roundMetrics[r].width / 2;
+        drawHeader(leftX, roundData.url);
+
+        if (isSplit && r < roundCount - 1 && itemsInRound > 1) {
+          const rightX = getX(r, itemsInRound - 1, itemsInRound) + roundMetrics[r].width / 2;
+          drawHeader(rightX, roundData.url);
+        }
+      }
 
       for (let t = 0; t < itemsInRound; t++) {
         const teamData = teams[t];
@@ -145,7 +181,7 @@ class BracketLayout {
           const nextMetric = roundMetrics[r + 1];
           
           let nextT = Math.floor(t / 2);
-          let nextRoundTotal = rounds[r + 1].length;
+          let nextRoundTotal = rounds[r + 1].teams.length;
           const nextX = getX(r + 1, nextT, nextRoundTotal);
           const nextY = getTeamY(r + 1, nextT, nextRoundTotal) + teamYsize / 2;
           
@@ -255,7 +291,17 @@ class BracketLayout {
     for (let r = 0; r < rounds.length; r++) {
       let maxTextWidth = this.#theme.minWidth;
 
-      for (const teamData of rounds[r]) {
+      // Calculate round header text width if present
+      const roundData = rounds[r];
+      if (roundData.name && ctx) {
+        ctx.font = `${this.#theme.roundHeaderFontSize}px ${this.#theme.fontFamily}`;
+        const headerWidth = ctx.measureText(roundData.name).width + this.#theme.paddingX;
+        if (headerWidth > maxTextWidth) maxTextWidth = headerWidth;
+      }
+
+      ctx.font = `${this.#theme.fontSize}px ${this.#theme.fontFamily}`;
+
+      for (const teamData of roundData.teams) {
         const teamName = typeof teamData === "string" ? teamData : teamData.name;
         const measuredWidth = ctx ? ctx.measureText(teamName).width : teamName.length * 8;
         const requiredWidth = measuredWidth + this.#theme.paddingX;

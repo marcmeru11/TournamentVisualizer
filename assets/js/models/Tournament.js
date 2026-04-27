@@ -6,11 +6,22 @@ class Tournament {
   #rounds = [];
 
   constructor(initialRounds = []) {
-    this.#rounds = initialRounds;
+    for (const round of initialRounds) {
+      this.addRound(round);
+    }
   }
 
-  addRound(teams) {
-    this.#rounds.push(teams);
+  addRound(roundData) {
+    if (Array.isArray(roundData)) {
+      this.#rounds.push({ teams: roundData });
+    } else {
+      this.#rounds.push({
+        name: roundData.name || null,
+        url: roundData.url || null,
+        textColor: roundData.textColor || null,
+        teams: roundData.teams || []
+      });
+    }
   }
 
   get rounds() {
@@ -18,7 +29,7 @@ class Tournament {
   }
 
   get isEmpty() {
-    return this.#rounds.length === 0 || this.#rounds[0].length === 0;
+    return this.#rounds.length === 0 || this.#rounds[0].teams.length === 0;
   }
 
   clear() {

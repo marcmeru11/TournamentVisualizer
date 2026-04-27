@@ -11,11 +11,11 @@ try {
   const customTheme = TournamentTheme.DARK.extend({
     boxBorderRadius: 10,
     roundSpacingX: 120,
-    layoutType: "split",
+    //layoutType: "split",
     matchIndicatorType: "line",
     matchIndicatorLabel: "VS",
     matchIndicatorColor: "#1e293b",
-    matchIndicatorIconColor: "#38bdf8",
+    matchIndicatorIconColor: "#f83838ff",
     centerGap: 250,
     showCenterButton: true
   });
@@ -23,29 +23,45 @@ try {
   const bracket = new TournamentBracket("canvas", customTheme);
   
   const demoData = [
-    [
-      { name: "Team 1", score: 2, url: "https://example.com/team1", matchUrl: "https://example.com/match1" }, 
-      { name: "Team 2", score: 1, url: "https://example.com/team2" },
-      { name: "Team 3", score: 0, url: "https://example.com/team3", matchUrl: "https://example.com/match2" }, 
-      { name: "Team 4", score: 3, url: "https://example.com/team4" },
-      { name: "Team 5", score: 1, url: "https://example.com/team5", matchUrl: "https://example.com/match3" }, 
-      { name: "Team 6", score: 2, url: "https://example.com/team6" },
-      { name: "Team 7", score: 3, url: "https://example.com/team7", matchUrl: "https://example.com/match4" }, 
-      { name: "Team 8", score: 0, url: "https://example.com/team8" }
-    ],
-    [
-      { name: "Team 1", score: 3, url: "https://example.com/team1", matchUrl: "https://example.com/match5" }, 
-      { name: "Team 4", score: 2, url: "https://example.com/team4" },
-      { name: "Team 6", score: 1, url: "https://example.com/team6", matchUrl: "https://example.com/match6" }, 
-      { name: "Team 7", score: 4, url: "https://example.com/team7" }
-    ],
-    [
-      { name: "Team 1", score: 5, url: "https://example.com/team1", matchUrl: "https://example.com/match7" }, 
-      { name: "Team 7", score: 2, url: "https://example.com/team7" }
-    ],
-    [
-      { name: "Winner: Team 1", url: "https://example.com/team1" }
-    ]
+    {
+      name: "Cuartos de Final",
+      url: "https://example.com/cuartos",
+      textColor: "#38bdf8",
+      teams: [
+        { name: "Team 1", score: 2, url: "https://example.com/team1", matchUrl: "https://example.com/match1" }, 
+        { name: "Team 2", score: 1, url: "https://example.com/team2" },
+        { name: "Team 3", score: 0, url: "https://example.com/team3", matchUrl: "https://example.com/match2" }, 
+        { name: "Team 4", score: 3, url: "https://example.com/team4" },
+        { name: "Team 5", score: 1, url: "https://example.com/team5", matchUrl: "https://example.com/match3" }, 
+        { name: "Team 6", score: 2, url: "https://example.com/team6" },
+        { name: "Team 7", score: 3, url: "https://example.com/team7", matchUrl: "https://example.com/match4" }, 
+        { name: "Team 8", score: 0, url: "https://example.com/team8" }
+      ]
+    },
+    {
+      name: "Semifinales",
+      teams: [
+        { name: "Team 1", score: 3, url: "https://example.com/team1", matchUrl: "https://example.com/match5" }, 
+        { name: "Team 4", score: 2, url: "https://example.com/team4" },
+        { name: "Team 6", score: 1, url: "https://example.com/team6", matchUrl: "https://example.com/match6" }, 
+        { name: "Team 7", score: 4, url: "https://example.com/team7" }
+      ]
+    },
+    {
+      name: "Gran Final",
+      url: "https://example.com/final",
+      textColor: "#facc15",
+      teams: [
+        { name: "Team 1", score: 5, url: "https://example.com/team1", matchUrl: "https://example.com/match7" }, 
+        { name: "Team 7", score: 2, url: "https://example.com/team7" }
+      ]
+    },
+    {
+      name: "Ganador",
+      teams: [
+        { name: "Winner: Team 1", url: "https://example.com/team1" }
+      ]
+    }
   ];
 
 

@@ -13,7 +13,7 @@ describe('Tournament Model', () => {
     const round1 = [{ name: 'Team A' }, { name: 'Team B' }];
     tournament.addRound(round1);
     expect(tournament.rounds).toHaveLength(1);
-    expect(tournament.rounds[0]).toEqual(round1);
+    expect(tournament.rounds[0].teams).toEqual(round1);
     expect(tournament.isEmpty).toBe(false);
   });
 
