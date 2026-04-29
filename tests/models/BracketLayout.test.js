@@ -105,4 +105,35 @@ describe('BracketLayout', () => {
     const shapes = localLayout.generateShapes(tournament, mockCtx);
     expect(shapes.length).toBeGreaterThan(0);
   });
+
+  it('should generate shapes for multiple extra matches', () => {
+    const tournament = new Tournament({
+      teams: { "T1": { name: "Team 1" }, "T2": { name: "Team 2" } },
+      rounds: [{ 
+        name: "Final",
+        matches: [{ teams: [{ id: "T1" }, { id: "T2" }] }] 
+      }],
+      extraMatches: [
+        {
+          title: "Extra A",
+          match: { id: "a", teams: [{ id: "T1" }, { id: "T2" }] }
+        },
+        {
+          title: "Extra B",
+          match: { id: "b", teams: [{ id: "T1" }, { id: "T2" }] }
+        }
+      ]
+    });
+    const shapes = layout.generateShapes(tournament, mockCtx);
+    
+    // Check that we have both headers
+    const headerA = shapes.find(s => s.constructor.name === 'TextShape' && s.text === 'Extra A');
+    const headerB = shapes.find(s => s.constructor.name === 'TextShape' && s.text === 'Extra B');
+    expect(headerA).toBeDefined();
+    expect(headerB).toBeDefined();
+    
+    // Check for team boxes (2 groups * 2 teams = 4 boxes)
+    const boxes = shapes.filter(s => s.constructor.name === 'RectShape' && s.hoverGroupId && s.hoverGroupId.startsWith('extra-'));
+    expect(boxes.length).toBeGreaterThanOrEqual(4);
+  });
 });

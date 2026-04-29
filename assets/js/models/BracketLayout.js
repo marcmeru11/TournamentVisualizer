@@ -281,8 +281,180 @@ class BracketLayout {
         }
       }
     }
+    // 4. Generate Extra Matches if present
+    if (tournament.extraMatches.length > 0) {
+      // Find the bottom of the main bracket
+      let maxY = -Infinity;
+      for (const box of boxes) {
+        if (typeof box.height === 'number') {
+          maxY = Math.max(maxY, box.y + box.height);
+        }
+      }
+      
+      const extraShapes = this.#generateExtraMatchesShapes(tournament, ctx, maxY, roundMetrics);
+      return [...lines, ...boxes, ...indicators, ...extraShapes];
+    }
 
     return [...lines, ...boxes, ...indicators];
+  }
+
+  /**
+   * Generates shapes for all extra matches.
+   * Positioned below the main bracket.
+   */
+  #generateExtraMatchesShapes(tournament, ctx, mainBracketMaxY, roundMetrics) {
+    let currentMaxY = mainBracketMaxY + this.#theme.extraMatchesMarginTop;
+    const allExtraShapes = [];
+    
+    for (const group of tournament.extraMatches) {
+      const groupShapes = this.#generateExtraMatchGroupShapes(group, ctx, currentMaxY, roundMetrics);
+      allExtraShapes.push(...groupShapes);
+      
+      // Update maxY for the next group
+      for (const shape of groupShapes) {
+        if (typeof shape.height === 'number') {
+          currentMaxY = Math.max(currentMaxY, shape.y + shape.height);
+        }
+      }
+      currentMaxY += this.#theme.extraMatchSpacingY;
+    }
+    
+    return allExtraShapes;
+  }
+
+  /**
+   * Generates shapes for a single extra match group.
+   */
+  #generateExtraMatchGroupShapes(group, ctx, startY, roundMetrics) {
+    const shapes = [];
+    const match = group.match;
+    if (!match) return [];
+
+    const { 
+      teamYsize, teamSpacingY, extraMatchesDefaultLabel,
+      roundHeaderFontSize, roundHeaderTextColor, fontFamily, roundHeaderMarginBottom
+    } = this.#theme;
+
+    const roundCount = roundMetrics.length;
+    // Align with specified round or penultimate round (semifinals) by default
+    const targetRoundIdx = group.alignWithRound !== null 
+      ? Math.min(group.alignWithRound, roundCount - 1)
+      : Math.max(0, roundCount - 2);
+    const metric = roundMetrics[targetRoundIdx];
+    
+    let x;
+    const isSplit = this.#theme.layoutType === "split" && roundCount > 1;
+    if (isSplit) {
+      // Center it below the final
+      const wingWidth = roundMetrics[roundCount - 2].x + roundMetrics[roundCount - 2].width;
+      x = wingWidth + (this.#theme.centerGap / 2) - (metric.width / 2);
+    } else {
+      x = metric.x;
+    }
+
+    // Header
+    const headerY = startY;
+    shapes.push(new TextShape(
+      x + metric.width / 2, headerY, group.title || extraMatchesDefaultLabel, 
+      roundHeaderTextColor, fontFamily, roundHeaderFontSize
+    ));
+
+    const matchY = headerY + roundHeaderMarginBottom;
+
+    // Draw the two teams
+    for (let i = 0; i < match.teams.length; i++) {
+      const teamData = match.teams[i];
+      const teamName = teamData.name;
+      const score = teamData.score !== undefined ? teamData.score : null;
+      const url = teamData.url || null;
+      
+      const y = matchY + i * (teamYsize + teamSpacingY);
+      const width = metric.width;
+      const hasScore = score !== null;
+      const scoreWidth = hasScore ? this.#theme.scoreBoxWidth : 0;
+      const effectiveNameWidth = width - scoreWidth;
+      
+      const hoverGroupId = `extra-${match.id || 'match'}-${i}`;
+
+      // Main Box
+      const mainBox = new RectShape(
+        x, y, width, teamYsize, this.#theme.boxFillColor, true, 
+        this.#theme.boxStrokeColor, this.#theme.boxLineWidth, this.#theme.boxBorderRadius
+      );
+      mainBox.hoverGroupId = hoverGroupId;
+      mainBox.hoverColor = this.#theme.boxHoverFillColor;
+      mainBox.hoverStroke = this.#theme.boxHoverStrokeColor;
+      if (url) {
+        mainBox.metadata = { url };
+        mainBox.cursor = "pointer";
+      }
+      shapes.push(mainBox);
+
+      // Score Box
+      if (hasScore) {
+        const scoreX = x + effectiveNameWidth;
+        const scoreBox = new RectShape(
+          scoreX, y, scoreWidth, teamYsize, this.#theme.scoreBoxFillColor, true,
+          this.#theme.boxStrokeColor, this.#theme.boxLineWidth, [0, this.#theme.boxBorderRadius, this.#theme.boxBorderRadius, 0]
+        );
+        scoreBox.hoverGroupId = hoverGroupId;
+        scoreBox.hoverColor = this.#theme.scoreBoxHoverFillColor;
+        if (url) {
+          scoreBox.metadata = { url };
+          scoreBox.cursor = "pointer";
+        }
+        shapes.push(scoreBox);
+
+        const scoreText = new TextShape(
+          scoreX + scoreWidth / 2, y + teamYsize / 2, score.toString(),
+          this.#theme.scoreTextColor, fontFamily, this.#theme.fontSize
+        );
+        scoreText.hoverGroupId = hoverGroupId;
+        scoreText.hoverColor = this.#theme.scoreTextColorHover;
+        shapes.push(scoreText);
+      }
+
+      // Logo
+      const teamImage = teamData.image ? ImageLoader.get(teamData.image) : null;
+      const showLogo = this.#theme.showTeamLogos && teamImage;
+      const logoSize = this.#theme.teamLogoSize;
+      const logoMargin = this.#theme.teamLogoMargin;
+      const logoSpace = showLogo ? (logoSize + logoMargin) : 0;
+
+      if (showLogo) {
+        const logoY = y + (teamYsize - logoSize) / 2;
+        const logoX = x + logoMargin;
+        const logoShape = new ImageShape(logoX, logoY, logoSize, logoSize, teamImage, {
+          clipShape: this.#theme.teamLogoShape,
+          borderRadius: this.#theme.teamLogoBorderRadius
+        });
+        logoShape.hoverGroupId = hoverGroupId;
+        if (url) {
+          logoShape.metadata = { url };
+          logoShape.cursor = "pointer";
+        }
+        shapes.push(logoShape);
+      }
+
+      // Name
+      const textCenterX = x + logoSpace + (effectiveNameWidth - logoSpace) / 2;
+      const nameText = new TextShape(
+        textCenterX, y + teamYsize / 2, teamName,
+        this.#theme.textColor, fontFamily, this.#theme.fontSize
+      );
+      nameText.hoverGroupId = hoverGroupId;
+      nameText.hoverColor = this.#theme.textColorHover;
+      shapes.push(nameText);
+    }
+
+    // Add match indicator
+    if (this.#theme.matchIndicatorType !== "hidden") {
+      const indicatorX = x + metric.width / 2;
+      const indicatorY = matchY + teamYsize + (teamSpacingY / 2);
+      this.#addMatchIndicator(shapes, indicatorX, indicatorY, match.url || null);
+    }
+
+    return shapes;
   }
 
   /**

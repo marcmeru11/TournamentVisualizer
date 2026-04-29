@@ -67,6 +67,11 @@ class TournamentTheme {
     this.teamLogoBorderRadius = options.teamLogoBorderRadius ?? 4;
     this.teamLogoMargin = options.teamLogoMargin ?? 8;
     this.teamLogoPosition = options.teamLogoPosition || "left"; // 'left' or 'right'
+
+    // Extra Matches
+    this.extraMatchesMarginTop = options.extraMatchesMarginTop ?? 60;
+    this.extraMatchesDefaultLabel = options.extraMatchesDefaultLabel || "Extra Match";
+    this.extraMatchSpacingY = options.extraMatchSpacingY ?? 40;
   }
 
   /**

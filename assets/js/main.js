@@ -141,6 +141,29 @@ try {
           }
         ]
       }
+    ],
+    extraMatches: [
+      {
+        title: "Partido por el Tercer Puesto",
+        match: {
+          id: "3rd-place",
+          url: "https://example.com/match-3rd",
+          teams: [
+            { id: "GAL", score: 2 },
+            { id: "BAY", score: 1 }
+          ]
+        }
+      },
+      {
+        title: "Partido de Consolación",
+        match: {
+          id: "consolation",
+          teams: [
+            { name: "Chelsea", score: 0 },
+            { name: "FC Barcelona", score: 3 }
+          ]
+        }
+      }
     ]
   };
 

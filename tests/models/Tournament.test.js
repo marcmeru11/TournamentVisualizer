@@ -67,6 +67,39 @@ describe('Tournament Model', () => {
     expect(champRound.matches[0].teams[0].name).toBe("Winner Team");
   });
 
+  it('should parse extraMatches correctly', () => {
+    const data = {
+      teams: { "T1": { name: "Team 1" }, "T2": { name: "Team 2" } },
+      rounds: [],
+      extraMatches: [
+        {
+          title: "Custom Title",
+          match: { id: "m1", teams: [{ id: "T1", score: 2 }, { id: "T2", score: 1 }] }
+        }
+      ]
+    };
+
+    const tournament = new Tournament(data);
+    expect(tournament.extraMatches).toHaveLength(1);
+    expect(tournament.extraMatches[0].title).toBe("Custom Title");
+    expect(tournament.extraMatches[0].match.teams[0].name).toBe("Team 1");
+  });
+
+  it('should support legacy thirdPlaceMatch parsing', () => {
+    const data = {
+      teams: { "T1": { name: "T1" }, "T2": { name: "T2" } },
+      rounds: [],
+      thirdPlaceMatch: {
+        id: "legacy",
+        teams: [{ id: "T1" }, { id: "T2" }]
+      }
+    };
+    const tournament = new Tournament(data);
+    expect(tournament.extraMatches).toHaveLength(1);
+    expect(tournament.extraMatches[0].title).toBe("3rd Place");
+    expect(tournament.extraMatches[0].match.id).toBe("legacy");
+  });
+
   it('should add rounds with matches structure (legacy addRound)', () => {
     const tournament = new Tournament();
     tournament.addRound({

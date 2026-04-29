@@ -16,6 +16,7 @@
 class Tournament {
   #rounds = [];
   #teamsDictionary = {};
+  #extraMatches = [];
 
   constructor(data) {
     if (!data) return;
@@ -71,6 +72,33 @@ class Tournament {
         textColor: null,
         matches: [{ id: null, url: null, teams: [champTeam] }]
       });
+    }
+
+    // Parse optional extra matches
+    if (data.extraMatches && Array.isArray(data.extraMatches)) {
+      this.#extraMatches = data.extraMatches.map(item => {
+        const m = item.match || {};
+        return {
+          title: item.title || null,
+          alignWithRound: item.alignWithRound ?? null,
+          match: {
+            id: m.id || null,
+            url: m.url || null,
+            teams: (m.teams || []).map(t => this.#resolveTeam(t))
+          }
+        };
+      });
+    } else if (data.thirdPlaceMatch) {
+      // Legacy support for thirdPlaceMatch
+      const tpm = data.thirdPlaceMatch;
+      this.#extraMatches = [{
+        title: "3rd Place",
+        match: {
+          id: tpm.id || null,
+          url: tpm.url || null,
+          teams: (tpm.teams || []).map(t => this.#resolveTeam(t))
+        }
+      }];
     }
   }
 
@@ -146,12 +174,17 @@ class Tournament {
     return this.#rounds;
   }
 
+  get extraMatches() {
+    return this.#extraMatches;
+  }
+
   get isEmpty() {
     return this.#rounds.length === 0 || this.#rounds[0].matches.length === 0;
   }
 
   clear() {
     this.#rounds = [];
+    this.#extraMatches = [];
   }
 }
 
