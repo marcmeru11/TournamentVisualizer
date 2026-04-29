@@ -31,6 +31,33 @@ try {
     matchIndicatorColor: "#1f2833",
     matchIndicatorIconColor: "#66fcf1",
     
+    // Winner Highlights
+    winnerBoxFillColor: "#1a3a2a", // Dark green
+    winnerBoxStrokeColor: "#2ecc71", // Emerald green border
+    winnerTextColor: "#ffffff",
+    winnerScoreBoxFillColor: "#2ecc71", // Emerald score box
+    winnerScoreTextColor: "#000000",
+    
+    winnerBoxHoverFillColor: "#254a35", // Brighter green on hover
+    winnerScoreBoxHoverFillColor: "#41e081",
+    winnerTextColorHover: "#ffffff",
+    
+    // Line Highlights
+    winnerLineColor: "#2ecc71",
+    winnerLineWidth: 2,
+    loserLineColor: "#333333",
+    loserLineWidth: 1,
+    
+    // Champion Styling
+    championBoxFillColor: "#3d3211", // Dark gold
+    championBoxStrokeColor: "#f1c40f", // Gold
+    championTextColor: "#f1c40f",
+    championBoxLineWidth: 3,
+    championFontSize: 20,
+    championLogoSize: 32,
+    championPaddingX: 40,
+    championLogoMargin: 15,
+    
     // Hover Effects
     boxHoverFillColor: "#3a3a3a",
     boxHoverStrokeColor: "transparent",
@@ -100,6 +127,7 @@ try {
           },
           {
             id: "qf4",
+            winnerId: "BAY",
             teams: [
               { id: "MCI", score: 2 },
               { id: "BAY", score: 2 }

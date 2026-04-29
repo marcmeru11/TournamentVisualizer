@@ -142,16 +142,62 @@ class BracketLayout {
           const effectiveNameWidth = width - scoreWidth;
           const isRightSide = isSplit && r < roundCount - 1 && t >= itemsInRound / 2;
 
+          // Identify Winner
+          const otherIndex = i === 0 ? 1 : 0;
+          const otherTeam = matchData.teams[otherIndex];
+          
+          let isWinner = false;
+          if (this.#theme.highlightWinner) {
+            if (teamData.isWinner !== undefined) {
+              isWinner = teamData.isWinner;
+            } else if (teamData.score !== undefined && otherTeam && otherTeam.score !== undefined) {
+              isWinner = teamData.score > otherTeam.score;
+            }
+          }
+
+          // Identify Loser
+          const isLoser = otherTeam && (
+            (otherTeam.isWinner === true) || 
+            (otherTeam.score !== undefined && teamData.score !== undefined && otherTeam.score > teamData.score)
+          );
+
+          // Identify Champion
+          const isChampion = this.#theme.highlightChampion && 
+                             r === roundCount - 1 && 
+                             (matches.length === 1 && (matchData.teams.length === 1 || isWinner));
+
           // Add Main Box
           const hoverGroupId = `team-${r}-${t}`;
           
+          // Colors
+          let boxColor = this.#theme.boxFillColor;
+          let boxStroke = this.#theme.boxStrokeColor;
+          let lineWidth = this.#theme.boxLineWidth;
+
+          if (isWinner) {
+            boxColor = this.#theme.winnerBoxFillColor || boxColor;
+            boxStroke = this.#theme.winnerBoxStrokeColor || boxStroke;
+          } else if (isLoser) {
+            boxColor = this.#theme.loserBoxFillColor || boxColor;
+            boxStroke = this.#theme.loserBoxStrokeColor || boxStroke;
+          }
+
+          if (isChampion) {
+            boxColor = this.#theme.championBoxFillColor || boxColor;
+            boxStroke = this.#theme.championBoxStrokeColor || boxStroke;
+            lineWidth = this.#theme.championBoxLineWidth ?? lineWidth;
+          }
+
+          const boxHoverColor = (isWinner && this.#theme.winnerBoxHoverFillColor) ? this.#theme.winnerBoxHoverFillColor : this.#theme.boxHoverFillColor;
+          const boxHoverStroke = (isWinner && this.#theme.winnerBoxHoverStrokeColor) ? this.#theme.winnerBoxHoverStrokeColor : this.#theme.boxHoverStrokeColor;
+
           const mainBox = new RectShape(
-            x, y, width, teamYsize, this.#theme.boxFillColor, true, 
-            this.#theme.boxStrokeColor, this.#theme.boxLineWidth, this.#theme.boxBorderRadius
+            x, y, width, teamYsize, boxColor, true, 
+            boxStroke, lineWidth, this.#theme.boxBorderRadius
           );
           mainBox.hoverGroupId = hoverGroupId;
-          mainBox.hoverColor = this.#theme.boxHoverFillColor;
-          mainBox.hoverStroke = this.#theme.boxHoverStrokeColor;
+          mainBox.hoverColor = boxHoverColor;
+          mainBox.hoverStroke = boxHoverStroke;
 
           if (url) {
             mainBox.metadata = { url };
@@ -166,12 +212,16 @@ class BracketLayout {
               ? [this.#theme.boxBorderRadius, 0, 0, this.#theme.boxBorderRadius]
               : [0, this.#theme.boxBorderRadius, this.#theme.boxBorderRadius, 0];
 
+            const scoreBoxColor = (isWinner && this.#theme.winnerScoreBoxFillColor) ? this.#theme.winnerScoreBoxFillColor : this.#theme.scoreBoxFillColor;
+
+            const scoreBoxHoverColor = (isWinner && this.#theme.winnerScoreBoxHoverFillColor) ? this.#theme.winnerScoreBoxHoverFillColor : this.#theme.scoreBoxHoverFillColor;
+
             const scoreBox = new RectShape(
-              scoreX, y, scoreWidth, teamYsize, this.#theme.scoreBoxFillColor, true,
-              this.#theme.boxStrokeColor, this.#theme.boxLineWidth, borderRadius
+              scoreX, y, scoreWidth, teamYsize, scoreBoxColor, true,
+              boxStroke, this.#theme.boxLineWidth, borderRadius
             );
             scoreBox.hoverGroupId = hoverGroupId;
-            scoreBox.hoverColor = this.#theme.scoreBoxHoverFillColor;
+            scoreBox.hoverColor = scoreBoxHoverColor;
             scoreBox.hoverStroke = this.#theme.boxHoverStrokeColor;
 
             if (url) {
@@ -180,12 +230,16 @@ class BracketLayout {
             }
             boxes.push(scoreBox);
 
+            const scoreTextColor = (isWinner && this.#theme.winnerScoreTextColor) ? this.#theme.winnerScoreTextColor : this.#theme.scoreTextColor;
+
+            const scoreTextColorHover = (isWinner && this.#theme.winnerScoreTextColorHover) ? this.#theme.winnerScoreTextColorHover : this.#theme.scoreTextColorHover;
+
             const scoreText = new TextShape(
               scoreX + scoreWidth / 2, y + teamYsize / 2, score.toString(),
-              this.#theme.scoreTextColor, this.#theme.fontFamily, this.#theme.fontSize
+              scoreTextColor, this.#theme.fontFamily, this.#theme.fontSize
             );
             scoreText.hoverGroupId = hoverGroupId;
-            scoreText.hoverColor = this.#theme.scoreTextColorHover;
+            scoreText.hoverColor = scoreTextColorHover;
             boxes.push(scoreText);
           }
 
@@ -193,7 +247,7 @@ class BracketLayout {
           const nameX = isRightSide ? x + scoreWidth : x;
           const teamImage = teamData.image ? ImageLoader.get(teamData.image) : null;
           const showLogo = this.#theme.showTeamLogos && teamImage;
-          const logoSize = this.#theme.teamLogoSize;
+          const logoSize = (isChampion && this.#theme.championLogoSize) ? this.#theme.championLogoSize : this.#theme.teamLogoSize;
           const logoMargin = this.#theme.teamLogoMargin;
           const logoSpace = showLogo ? (logoSize + logoMargin) : 0;
 
@@ -234,12 +288,27 @@ class BracketLayout {
             textCenterX = nameX + effectiveNameWidth / 2;
           }
 
+          let nameTextColor = this.#theme.textColor;
+          if (isWinner) {
+            nameTextColor = this.#theme.winnerTextColor || nameTextColor;
+          } else if (isLoser) {
+            nameTextColor = this.#theme.loserTextColor || nameTextColor;
+          }
+
+          if (isChampion) {
+            nameTextColor = this.#theme.championTextColor || nameTextColor;
+          }
+
+          const nameTextColorHover = (isWinner && this.#theme.winnerTextColorHover) ? this.#theme.winnerTextColorHover : this.#theme.textColorHover;
+
+          const nameFontSize = (isChampion && this.#theme.championFontSize) ? this.#theme.championFontSize : this.#theme.fontSize;
+
           const nameText = new TextShape(
             textCenterX, y + teamYsize / 2, teamName,
-            this.#theme.textColor, this.#theme.fontFamily, this.#theme.fontSize
+            nameTextColor, this.#theme.fontFamily, nameFontSize
           );
           nameText.hoverGroupId = hoverGroupId;
-          nameText.hoverColor = this.#theme.textColorHover;
+          nameText.hoverColor = nameTextColorHover;
           boxes.push(nameText);
 
           // Add Progress Connectors and Match Link
@@ -261,16 +330,59 @@ class BracketLayout {
             
             const xEnd = isRightSide ? nextX + nextMetric.width : nextX;
 
-            const pathColor = (matchUrl && this.#theme.matchIndicatorType === "line") 
-              ? this.#theme.matchIndicatorColor 
-              : this.#theme.lineColor;
+            // 1. Determine line style for the team path
+            let pathColor = this.#theme.lineColor;
+            let pathWidth = this.#theme.lineWidth;
 
-            lines.push(new LineShape(xStart, y + teamYsize/2, xMid, y + teamYsize/2, pathColor, this.#theme.lineWidth));
-            lines.push(new LineShape(xMid, y + teamYsize/2, xMid, nextY, pathColor, this.#theme.lineWidth));
+            if (this.#theme.highlightWinnerLines) {
+              const isLoser = otherTeam && (
+                (otherTeam.isWinner === true) || 
+                (otherTeam.score !== undefined && teamData.score !== undefined && otherTeam.score > teamData.score)
+              );
+              
+              if (isWinner) {
+                pathColor = this.#theme.winnerLineColor || pathColor;
+                pathWidth = this.#theme.winnerLineWidth || pathWidth;
+              } else if (isLoser) {
+                pathColor = this.#theme.loserLineColor || pathColor;
+                pathWidth = this.#theme.loserLineWidth || pathWidth;
+              }
+            }
+
+            // Indicator line override (only for the horizontal part out of the team box)
+            const horizontalPathColor = (matchUrl && this.#theme.matchIndicatorType === "line") 
+              ? this.#theme.matchIndicatorColor 
+              : pathColor;
+
+            lines.push(new LineShape(xStart, y + teamYsize/2, xMid, y + teamYsize/2, horizontalPathColor, pathWidth));
+            lines.push(new LineShape(xMid, y + teamYsize/2, xMid, nextY, pathColor, pathWidth));
             
             // Draw the exit line and indicator only once per match (i === 0)
             if (i === 0) {
-              lines.push(new LineShape(xMid, nextY, xEnd, nextY, pathColor, this.#theme.lineWidth));
+              // 2. Determine line style for the exit path (the one leading to the next round)
+              let exitLineColor = this.#theme.lineColor;
+              let exitLineWidth = this.#theme.lineWidth;
+              
+              if (this.#theme.highlightWinnerLines) {
+                const hasWinner = isWinner || (otherTeam && (
+                  otherTeam.isWinner === true || 
+                  (otherTeam.score !== undefined && teamData.score !== undefined && otherTeam.score > teamData.score)
+                ));
+                
+                if (hasWinner) {
+                  exitLineColor = this.#theme.winnerLineColor || exitLineColor;
+                  exitLineWidth = this.#theme.winnerLineWidth || exitLineWidth;
+                } else {
+                  exitLineColor = this.#theme.loserLineColor || exitLineColor;
+                  exitLineWidth = this.#theme.loserLineWidth || exitLineWidth;
+                }
+              }
+
+              const finalExitColor = (matchUrl && this.#theme.matchIndicatorType === "line") 
+                ? this.#theme.matchIndicatorColor 
+                : exitLineColor;
+
+              lines.push(new LineShape(xMid, nextY, xEnd, nextY, finalExitColor, exitLineWidth));
               
               if (this.#theme.matchIndicatorType !== "hidden") {
                 this.#addMatchIndicator(indicators, xMid, nextY, matchUrl || null);
@@ -374,16 +486,59 @@ class BracketLayout {
       const scoreWidth = hasScore ? this.#theme.scoreBoxWidth : 0;
       const effectiveNameWidth = width - scoreWidth;
       
+      // Identify Winner
+      const otherIndex = i === 0 ? 1 : 0;
+      const otherTeam = match.teams[otherIndex];
+      
+      let isWinner = false;
+      if (this.#theme.highlightWinner) {
+        if (teamData.isWinner !== undefined) {
+          isWinner = teamData.isWinner;
+        } else if (teamData.score !== undefined && otherTeam && otherTeam.score !== undefined) {
+          isWinner = teamData.score > otherTeam.score;
+        }
+      }
+
+      const isLoser = otherTeam && (
+        (otherTeam.isWinner === true) || 
+        (otherTeam.score !== undefined && teamData.score !== undefined && otherTeam.score > teamData.score)
+      );
+
       const hoverGroupId = `extra-${match.id || 'match'}-${i}`;
+
+      // Colors
+      let boxColor = this.#theme.boxFillColor;
+      let boxStroke = this.#theme.boxStrokeColor;
+      let scoreBoxColor = this.#theme.scoreBoxFillColor;
+      let scoreTextColor = this.#theme.scoreTextColor;
+      let nameTextColor = this.#theme.textColor;
+
+      if (isWinner) {
+        boxColor = this.#theme.winnerBoxFillColor || boxColor;
+        boxStroke = this.#theme.winnerBoxStrokeColor || boxStroke;
+        scoreBoxColor = this.#theme.winnerScoreBoxFillColor || scoreBoxColor;
+        scoreTextColor = this.#theme.winnerScoreTextColor || scoreTextColor;
+        nameTextColor = this.#theme.winnerTextColor || nameTextColor;
+      } else if (isLoser) {
+        boxColor = this.#theme.loserBoxFillColor || boxColor;
+        boxStroke = this.#theme.loserBoxStrokeColor || boxStroke;
+        nameTextColor = this.#theme.loserTextColor || nameTextColor;
+      }
+
+      const boxHoverColor = (isWinner && this.#theme.winnerBoxHoverFillColor) ? this.#theme.winnerBoxHoverFillColor : this.#theme.boxHoverFillColor;
+      const boxHoverStroke = (isWinner && this.#theme.winnerBoxHoverStrokeColor) ? this.#theme.winnerBoxHoverStrokeColor : this.#theme.boxHoverStrokeColor;
+      const scoreBoxHoverColor = (isWinner && this.#theme.winnerScoreBoxHoverFillColor) ? this.#theme.winnerScoreBoxHoverFillColor : this.#theme.scoreBoxHoverFillColor;
+      const scoreTextColorHover = (isWinner && this.#theme.winnerScoreTextColorHover) ? this.#theme.winnerScoreTextColorHover : this.#theme.scoreTextColorHover;
+      const nameTextColorHover = (isWinner && this.#theme.winnerTextColorHover) ? this.#theme.winnerTextColorHover : this.#theme.textColorHover;
 
       // Main Box
       const mainBox = new RectShape(
-        x, y, width, teamYsize, this.#theme.boxFillColor, true, 
-        this.#theme.boxStrokeColor, this.#theme.boxLineWidth, this.#theme.boxBorderRadius
+        x, y, width, teamYsize, boxColor, true, 
+        boxStroke, this.#theme.boxLineWidth, this.#theme.boxBorderRadius
       );
       mainBox.hoverGroupId = hoverGroupId;
-      mainBox.hoverColor = this.#theme.boxHoverFillColor;
-      mainBox.hoverStroke = this.#theme.boxHoverStrokeColor;
+      mainBox.hoverColor = boxHoverColor;
+      mainBox.hoverStroke = boxHoverStroke;
       if (url) {
         mainBox.metadata = { url };
         mainBox.cursor = "pointer";
@@ -394,11 +549,11 @@ class BracketLayout {
       if (hasScore) {
         const scoreX = x + effectiveNameWidth;
         const scoreBox = new RectShape(
-          scoreX, y, scoreWidth, teamYsize, this.#theme.scoreBoxFillColor, true,
-          this.#theme.boxStrokeColor, this.#theme.boxLineWidth, [0, this.#theme.boxBorderRadius, this.#theme.boxBorderRadius, 0]
+          scoreX, y, scoreWidth, teamYsize, scoreBoxColor, true,
+          boxStroke, this.#theme.boxLineWidth, [0, this.#theme.boxBorderRadius, this.#theme.boxBorderRadius, 0]
         );
         scoreBox.hoverGroupId = hoverGroupId;
-        scoreBox.hoverColor = this.#theme.scoreBoxHoverFillColor;
+        scoreBox.hoverColor = scoreBoxHoverColor;
         if (url) {
           scoreBox.metadata = { url };
           scoreBox.cursor = "pointer";
@@ -407,10 +562,10 @@ class BracketLayout {
 
         const scoreText = new TextShape(
           scoreX + scoreWidth / 2, y + teamYsize / 2, score.toString(),
-          this.#theme.scoreTextColor, fontFamily, this.#theme.fontSize
+          scoreTextColor, fontFamily, this.#theme.fontSize
         );
         scoreText.hoverGroupId = hoverGroupId;
-        scoreText.hoverColor = this.#theme.scoreTextColorHover;
+        scoreText.hoverColor = scoreTextColorHover;
         shapes.push(scoreText);
       }
 
@@ -440,10 +595,10 @@ class BracketLayout {
       const textCenterX = x + logoSpace + (effectiveNameWidth - logoSpace) / 2;
       const nameText = new TextShape(
         textCenterX, y + teamYsize / 2, teamName,
-        this.#theme.textColor, fontFamily, this.#theme.fontSize
+        nameTextColor, fontFamily, this.#theme.fontSize
       );
       nameText.hoverGroupId = hoverGroupId;
-      nameText.hoverColor = this.#theme.textColorHover;
+      nameText.hoverColor = nameTextColorHover;
       shapes.push(nameText);
     }
 
@@ -533,28 +688,37 @@ class BracketLayout {
     }
 
     for (let r = 0; r < rounds.length; r++) {
+      const isChampRound = r === rounds.length - 1;
+      const currentFontSize = (isChampRound && this.#theme.championFontSize) ? this.#theme.championFontSize : this.#theme.fontSize;
+      const currentLogoSize = (isChampRound && this.#theme.championLogoSize) ? this.#theme.championLogoSize : this.#theme.teamLogoSize;
+      const currentLogoMargin = (isChampRound && this.#theme.championLogoMargin) ? this.#theme.championLogoMargin : this.#theme.teamLogoMargin;
+      const currentPaddingX = (isChampRound && this.#theme.championPaddingX) ? this.#theme.championPaddingX : (this.#theme.teamPaddingX || this.#theme.paddingX);
+
       let maxTextWidth = this.#theme.minWidth;
+      if (isChampRound && this.#theme.championBoxWidth) {
+        maxTextWidth = this.#theme.championBoxWidth;
+      }
 
       // Calculate round header text width if present
       const roundData = rounds[r];
       if (roundData.name && ctx) {
         ctx.font = `${this.#theme.roundHeaderFontSize}px ${this.#theme.fontFamily}`;
-        const headerWidth = ctx.measureText(roundData.name).width + this.#theme.paddingX;
+        const headerWidth = ctx.measureText(roundData.name).width + currentPaddingX;
         if (headerWidth > maxTextWidth) maxTextWidth = headerWidth;
       }
 
-      ctx.font = `${this.#theme.fontSize}px ${this.#theme.fontFamily}`;
+      ctx.font = `${currentFontSize}px ${this.#theme.fontFamily}`;
 
       // Extra width needed for logo if any team in this round has an image
       const logoExtra = this.#theme.showTeamLogos
-        ? (this.#theme.teamLogoSize + this.#theme.teamLogoMargin * 2)
+        ? (currentLogoSize + currentLogoMargin * 2)
         : 0;
 
       for (const match of roundData.matches) {
         for (const teamData of match.teams) {
           const teamName = typeof teamData === "string" ? teamData : teamData.name;
           const measuredWidth = ctx ? ctx.measureText(teamName).width : teamName.length * 8;
-          let requiredWidth = measuredWidth + this.#theme.paddingX;
+          let requiredWidth = measuredWidth + currentPaddingX;
           
           // Add logo space if this team has an image
           const hasImage = teamData.image && ImageLoader.get(teamData.image);

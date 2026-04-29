@@ -52,10 +52,20 @@ class Tournament {
       };
 
       for (const matchData of (roundData.matches || [])) {
-        const resolvedTeams = matchData.teams.map(t => this.#resolveTeam(t));
+        const winnerId = matchData.winnerId || null;
+        const resolvedTeams = (matchData.teams || []).map(t => {
+          const resolved = this.#resolveTeam(t);
+          // If match has a winnerId, and this team matches it, mark as winner
+          if (winnerId && (t === winnerId || (typeof t === 'object' && t.id === winnerId))) {
+            resolved.isWinner = true;
+          }
+          return resolved;
+        });
+
         parsedRound.matches.push({
           id: matchData.id || null,
           url: matchData.url || null,
+          winnerId: winnerId,
           teams: resolvedTeams
         });
       }
@@ -78,13 +88,22 @@ class Tournament {
     if (data.extraMatches && Array.isArray(data.extraMatches)) {
       this.#extraMatches = data.extraMatches.map(item => {
         const m = item.match || {};
+        const winnerId = m.winnerId || null;
+        
         return {
           title: item.title || null,
           alignWithRound: item.alignWithRound ?? null,
           match: {
             id: m.id || null,
             url: m.url || null,
-            teams: (m.teams || []).map(t => this.#resolveTeam(t))
+            winnerId: winnerId,
+            teams: (m.teams || []).map(t => {
+              const resolved = this.#resolveTeam(t);
+              if (winnerId && (t === winnerId || (typeof t === 'object' && t.id === winnerId))) {
+                resolved.isWinner = true;
+              }
+              return resolved;
+            })
           }
         };
       });

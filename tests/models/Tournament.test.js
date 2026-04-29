@@ -100,6 +100,22 @@ describe('Tournament Model', () => {
     expect(tournament.extraMatches[0].match.id).toBe("legacy");
   });
 
+  it('should parse winnerId at match level', () => {
+    const data = {
+      teams: { "T1": { name: "T1" }, "T2": { name: "T2" } },
+      rounds: [{
+        matches: [{
+          winnerId: "T2",
+          teams: [{ id: "T1", score: 1 }, { id: "T2", score: 1 }]
+        }]
+      }]
+    };
+    const tournament = new Tournament(data);
+    const match = tournament.rounds[0].matches[0];
+    expect(match.teams[1].isWinner).toBe(true);
+    expect(match.teams[0].isWinner).toBeFalsy();
+  });
+
   it('should add rounds with matches structure (legacy addRound)', () => {
     const tournament = new Tournament();
     tournament.addRound({

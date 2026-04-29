@@ -22,16 +22,19 @@ class TournamentTheme {
     this.teamYsize = options.teamYsize ?? 50;
     this.minWidth = options.minWidth ?? 100;
     this.paddingX = options.paddingX ?? 24;
+    
     // Score
     this.scoreBoxFillColor = options.scoreBoxFillColor || "#1e293b";
     this.scoreBoxHoverFillColor = options.scoreBoxHoverFillColor || this.scoreBoxFillColor;
     this.scoreTextColor = options.scoreTextColor || "#ffffff";
     this.scoreTextColorHover = options.scoreTextColorHover || this.scoreTextColor;
     this.scoreBoxWidth = options.scoreBoxWidth ?? 30;
+    
     // Round Headers
     this.roundHeaderFontSize = options.roundHeaderFontSize ?? 18;
     this.roundHeaderTextColor = options.roundHeaderTextColor || "#64748b";
     this.roundHeaderMarginBottom = options.roundHeaderMarginBottom ?? 30;
+    
     // Layout
     this.layoutType = options.layoutType || "single"; // 'single' or 'split'
     this.centerGap = options.centerGap ?? 200;
@@ -72,47 +75,140 @@ class TournamentTheme {
     this.extraMatchesMarginTop = options.extraMatchesMarginTop ?? 60;
     this.extraMatchesDefaultLabel = options.extraMatchesDefaultLabel || "Extra Match";
     this.extraMatchSpacingY = options.extraMatchSpacingY ?? 40;
+
+    // Winner Styling
+    this.highlightWinner = options.highlightWinner ?? true;
+    this.winnerBoxFillColor = options.winnerBoxFillColor || null;
+    this.winnerBoxStrokeColor = options.winnerBoxStrokeColor || null;
+    this.winnerTextColor = options.winnerTextColor || null;
+    this.winnerScoreBoxFillColor = options.winnerScoreBoxFillColor || null;
+    this.winnerScoreTextColor = options.winnerScoreTextColor || null;
+
+    this.winnerBoxHoverFillColor = options.winnerBoxHoverFillColor || null;
+    this.winnerBoxHoverStrokeColor = options.winnerBoxHoverStrokeColor || null;
+    this.winnerScoreBoxHoverFillColor = options.winnerScoreBoxHoverFillColor || null;
+    this.winnerTextColorHover = options.winnerTextColorHover || null;
+    this.winnerScoreTextColorHover = options.winnerScoreTextColorHover || null;
+
+    // Line Styling (Winner/Loser)
+    this.highlightWinnerLines = options.highlightWinnerLines ?? true;
+    this.winnerLineColor = options.winnerLineColor || null;
+    this.winnerLineWidth = options.winnerLineWidth || null;
+    this.loserLineColor = options.loserLineColor || null;
+    this.loserLineWidth = options.loserLineWidth || null;
+
+    // Champion Styling
+    this.highlightChampion = options.highlightChampion ?? true;
+    this.championBoxFillColor = options.championBoxFillColor || null;
+    this.championBoxStrokeColor = options.championBoxStrokeColor || null;
+    this.championTextColor = options.championTextColor || null;
+    this.championBoxLineWidth = options.championBoxLineWidth || null;
+    this.championFontSize = options.championFontSize || null;
+    this.championLogoSize = options.championLogoSize || null;
+    this.championBoxWidth = options.championBoxWidth || null;
+    this.championBoxHeight = options.championBoxHeight || null;
+    this.championLogoMargin = options.championLogoMargin || null;
+    this.championPaddingX = options.championPaddingX || null;
+
+    // Loser Styling
+    this.loserBoxFillColor = options.loserBoxFillColor || null;
+    this.loserBoxStrokeColor = options.loserBoxStrokeColor || null;
+    this.loserTextColor = options.loserTextColor || null;
+
+    this.teamPaddingX = options.teamPaddingX ?? 20;
   }
 
   /**
-   * Preset for a clean light theme.
+   * Clean, high legibility, with subtle shadows/borders and blue accents.
    */
   static get LIGHT() {
-    return new TournamentTheme();
-  }
-
-  /**
-   * Preset for a premium dark theme.
-   */
-  static get DARK() {
     return new TournamentTheme({
-      backgroundColor: "#0f172a",
-      boxFillColor: "#1e293b",
-      boxStrokeColor: "#38bdf8",
+      backgroundColor: "#f8f9fa", // Fondo gris ultra claro típico de Google
+      boxFillColor: "#ffffff",    // Cajas completamente blancas
+      boxStrokeColor: "#dadce0",  // Borde gris muy sutil
       boxLineWidth: 1,
-      boxBorderRadius: 10,
-      textColor: "#f8fafc",
-      lineColor: "#334155",
+      boxBorderRadius: 16,        // Esquinas tipo burbuja
+      textColor: "#3c4043",       // Gris oscuro para el texto principal
+      lineColor: "#dadce0",       // Líneas grises
       lineWidth: 2,
-      fontFamily: "sans-serif",
+      fontFamily: "system-ui, -apple-system, sans-serif",
+      
+      // Mismo fondo para la caja y el marcador (efecto unificado)
+      scoreBoxFillColor: "#ffffff", 
+      scoreTextColor: "#3c4043",
+      
+      highlightWinner: true,
+      winnerBoxFillColor: "#ffffff",
+      winnerBoxStrokeColor: "#bdc1c6", // Borde del ganador un poco más marcado
+      winnerTextColor: "#202124",      // Negro casi puro para resaltar
+      winnerLineColor: "#1a73e8",      // Azul oficial de Google para el avance
+      winnerLineWidth: 2,
+      winnerScoreBoxFillColor: "#ffffff",
+      winnerScoreTextColor: "#202124",
+
+      loserBoxFillColor: "#ffffff",
+      loserBoxStrokeColor: "#dadce0",
+      loserTextColor: "#80868b",       // Gris apagado para los que pierden
+
+      highlightChampion: true,
+      championBoxFillColor: "#ffffff",
+      championBoxStrokeColor: "#1a73e8", // Borde azul para el campeón
+      championTextColor: "#1a73e8",
+      championFontSize: 18,
+      championPaddingX: 30,
+
+      roundHeaderTextColor: "#5f6368",
+      
       matchIndicatorType: "pill",
-      matchIndicatorColor: "#1e293b",
-      matchIndicatorIconColor: "#38bdf8",
-      matchIndicatorLabel: "VS"
+      matchIndicatorLabel: "VS",
+      matchIndicatorColor: "#f1f3f4",      // Fondo de la píldora gris clarito
+      matchIndicatorIconColor: "#1a73e8"   // Texto de la píldora en azul
     });
   }
 
   /**
-   * Preset for a professional blue theme.
+   * Sober, clean, with highly rounded corners and subtle contrasts.
    */
-  static get BLUE() {
+  static get DARK() {
     return new TournamentTheme({
-      backgroundColor: "#f8fafc",
-      boxFillColor: "#3b82f6",
-      boxStrokeColor: "#1d4ed8",
-      textColor: "#ffffff",
-      lineColor: "#94a3b8",
-      boxBorderRadius: 4
+      backgroundColor: "#202124", // Fuerza el fondo oscuro en el Canvas
+      boxFillColor: "#303134",
+      boxStrokeColor: "#3c4043",
+      boxLineWidth: 1,
+      boxBorderRadius: 16, // Esquinas bien redondas
+      textColor: "#e8eaed",
+      lineColor: "#5f6368",
+      lineWidth: 2,
+      fontFamily: "system-ui, -apple-system, sans-serif",
+      
+      // Hacemos que el marcador tenga el mismo fondo que la caja para que no se note la división
+      scoreBoxFillColor: "#303134", 
+      scoreTextColor: "#e8eaed",
+      
+      highlightWinner: true,
+      winnerBoxFillColor: "#303134",
+      winnerBoxStrokeColor: "#5f6368",
+      winnerTextColor: "#ffffff",
+      winnerLineColor: "#8ab4f8", // Azul Google claro (Dark mode)
+      winnerLineWidth: 2,
+      winnerScoreBoxFillColor: "#303134",
+      winnerScoreTextColor: "#ffffff",
+
+      loserBoxFillColor: "#303134",
+      loserBoxStrokeColor: "#3c4043",
+      loserTextColor: "#9aa0a6",
+
+      highlightChampion: true,
+      championBoxFillColor: "#303134",
+      championBoxStrokeColor: "#8ab4f8",
+      championTextColor: "#8ab4f8",
+
+      roundHeaderTextColor: "#9aa0a6",
+      
+      matchIndicatorType: "pill",
+      matchIndicatorLabel: "VS",
+      matchIndicatorColor: "#3c4043",
+      matchIndicatorIconColor: "#8ab4f8"
     });
   }
 
