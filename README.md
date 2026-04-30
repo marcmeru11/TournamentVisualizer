@@ -156,6 +156,15 @@ The configuration class for visual styling and behavior.
 | `teamLogoMargin` | Margin between logo and box edges | `8` |
 | `teamLogoPosition` | Logo placement: `"left"` or `"right"` | `"left"` |
 
+##### Seeds
+
+| Property | Description | Default |
+| :--- | :--- | :--- |
+| `showSeeds` | Enable team seed rendering | `true` |
+| `seedTextColor` | Text color for seeds | `null` (uses round header color) |
+| `seedFontSize` | Font size for seed text | `12` |
+| `seedMarginRight` | Space between seed and logo/name | `6` |
+
 ##### UI Controls
 
 | Property | Description | Default |
@@ -243,6 +252,7 @@ const data = {
 | Property | Type | Required | Description |
 | :--- | :--- | :--- | :--- |
 | `name` | `string` | Yes | Display name for the team |
+| `seed` | `number\|string`| No | Ranking index (e.g. `1` or `"A1"`) displayed as `#1` |
 | `url` | `string` | No | Makes the team box clickable |
 | `image` | `string` | No | URL or path to the team's logo image. Loaded asynchronously and cached |
 

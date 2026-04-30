@@ -71,6 +71,12 @@ class TournamentTheme {
     this.teamLogoMargin = options.teamLogoMargin ?? 8;
     this.teamLogoPosition = options.teamLogoPosition || "left"; // 'left' or 'right'
 
+    // Seeds
+    this.showSeeds = options.showSeeds ?? true;
+    this.seedTextColor = options.seedTextColor || null;
+    this.seedFontSize = options.seedFontSize ?? 12;
+    this.seedMarginRight = options.seedMarginRight ?? 6;
+
     // Extra Matches
     this.extraMatchesMarginTop = options.extraMatchesMarginTop ?? 60;
     this.extraMatchesDefaultLabel = options.extraMatchesDefaultLabel || "Extra Match";
@@ -162,7 +168,11 @@ class TournamentTheme {
       matchIndicatorType: "pill",
       matchIndicatorLabel: "VS",
       matchIndicatorColor: "#f1f3f4",      // Fondo de la píldora gris clarito
-      matchIndicatorIconColor: "#1a73e8"   // Texto de la píldora en azul
+      matchIndicatorIconColor: "#1a73e8",   // Texto de la píldora en azul
+
+      showSeeds: true,
+      seedTextColor: "#80868b", // Gris suave para los seeds
+      seedFontSize: 11
     });
   }
 
@@ -208,7 +218,11 @@ class TournamentTheme {
       matchIndicatorType: "pill",
       matchIndicatorLabel: "VS",
       matchIndicatorColor: "#3c4043",
-      matchIndicatorIconColor: "#8ab4f8"
+      matchIndicatorIconColor: "#8ab4f8",
+
+      showSeeds: true,
+      seedTextColor: "#9aa0a6",
+      seedFontSize: 11
     });
   }
 

@@ -68,6 +68,12 @@ try {
     // Score box
     scoreBoxFillColor: "#2a2a2a",
     scoreTextColor: "#ffffff",
+
+    // Seeds
+    showSeeds: true,
+    seedTextColor: "#cccccc",
+    seedFontSize: 10,
+    seedMarginRight: 8,
     
     // Round Headers
     roundHeaderFontSize: 16,
@@ -90,14 +96,14 @@ try {
   
   const tournamentData = {
     teams: {
-      "LIV": { name: "Liverpool", url: "https://example.com/liverpool", image: "./assets/logos/liverpool.png" },
-      "GAL": { name: "Galatasaray", url: "https://example.com/galatasaray", image: "./assets/logos/galatasaray.png" },
-      "CHE": { name: "Chelsea", url: "https://example.com/chelsea", image: "./assets/logos/chelsea.png" },
-      "PSG": { name: "Paris SG", url: "https://example.com/psg", image: "./assets/logos/psg.png" },
-      "RMA": { name: "Real Madrid", url: "https://example.com/real-madrid", image: "./assets/logos/real_madrid.png" },
-      "FCB": { name: "FC Barcelona", url: "https://example.com/barcelona", image: "./assets/logos/barcelona.png" },
-      "MCI": { name: "Man. City", url: "https://example.com/man-city", image: "./assets/logos/man_city.png" },
-      "BAY": { name: "Bayern M.", url: "https://example.com/bayern", image: "./assets/logos/bayern.png" }
+      "LIV": { name: "Liverpool", seed: 1, url: "https://example.com/liverpool", image: "./assets/logos/liverpool.png" },
+      "GAL": { name: "Galatasaray", seed: 8, url: "https://example.com/galatasaray", image: "./assets/logos/galatasaray.png" },
+      "CHE": { name: "Chelsea", seed: 4, url: "https://example.com/chelsea", image: "./assets/logos/chelsea.png" },
+      "PSG": { name: "Paris SG", seed: 5, url: "https://example.com/psg", image: "./assets/logos/psg.png" },
+      "RMA": { name: "Real Madrid", seed: 2, url: "https://example.com/real-madrid", image: "./assets/logos/real_madrid.png" },
+      "FCB": { name: "FC Barcelona", seed: 7, url: "https://example.com/barcelona", image: "./assets/logos/barcelona.png" },
+      "MCI": { name: "Man. City", seed: 3, url: "https://example.com/man-city", image: "./assets/logos/man_city.png" },
+      "BAY": { name: "Bayern M.", seed: 6, url: "https://example.com/bayern", image: "./assets/logos/bayern.png" }
     },
     championId: "RMA",
     rounds: [
@@ -187,8 +193,8 @@ try {
         match: {
           id: "consolation",
           teams: [
-            { name: "Chelsea", score: 0 },
-            { name: "FC Barcelona", score: 3 }
+            { id: "CHE", score: 0 },
+            { id: "FCB", score: 3 }
           ]
         }
       }

@@ -206,4 +206,21 @@ describe('BracketLayout', () => {
     const hasWinnerColor = shapes.some(s => s.color === '#1a73e8');
     expect(hasWinnerColor).toBe(true);
   });
+
+  it('should render team seeds', () => {
+    const seedTheme = theme.extend({ showSeeds: true });
+    const localLayout = new BracketLayout(seedTheme);
+    const tournament = new Tournament({
+      teams: {
+        't1': { name: 'T1', seed: 1 }
+      },
+      rounds: [
+        { matches: [{ teams: ['t1'] }] }
+      ]
+    });
+    const shapes = localLayout.generateShapes(tournament, mockCtx);
+    const texts = shapes.filter(s => s.constructor.name === 'TextShape');
+    const hasSeed = texts.some(t => t.text === '#1');
+    expect(hasSeed).toBe(true);
+  });
 });

@@ -243,21 +243,52 @@ class BracketLayout {
             boxes.push(scoreText);
           }
 
-          // Add Team Logo and Name Text
+          // Add Team Seed, Logo and Name Text
           const nameX = isRightSide ? x + scoreWidth : x;
           const teamImage = teamData.image ? ImageLoader.get(teamData.image) : null;
           const showLogo = this.#theme.showTeamLogos && teamImage;
           const logoSize = (isChampion && this.#theme.championLogoSize) ? this.#theme.championLogoSize : this.#theme.teamLogoSize;
           const logoMargin = this.#theme.teamLogoMargin;
+          
+          // Seed logic
+          const seedValue = teamData.seed;
+          const showSeed = this.#theme.showSeeds && (seedValue !== undefined && seedValue !== null);
+          let seedWidth = 0;
+          let seedText = "";
+          if (showSeed) {
+            seedText = typeof seedValue === 'number' ? `#${seedValue}` : seedValue.toString();
+            ctx.font = `${this.#theme.seedFontSize}px ${this.#theme.fontFamily}`;
+            seedWidth = ctx.measureText(seedText).width;
+          }
+
+          const seedSpace = showSeed ? (seedWidth + this.#theme.seedMarginRight) : 0;
           const logoSpace = showLogo ? (logoSize + logoMargin) : 0;
+
+          if (showSeed) {
+            const seedX = isRightSide 
+              ? nameX + effectiveNameWidth - logoMargin - seedWidth
+              : nameX + logoMargin;
+            
+            const seedShape = new TextShape(
+              seedX + seedWidth / 2, y + teamYsize / 2, seedText,
+              this.#theme.seedTextColor || this.#theme.roundHeaderTextColor,
+              this.#theme.fontFamily, this.#theme.seedFontSize
+            );
+            seedShape.hoverGroupId = hoverGroupId;
+            boxes.push(seedShape);
+          }
 
           if (showLogo) {
             const logoY = y + (teamYsize - logoSize) / 2;
             let logoX;
             if (this.#theme.teamLogoPosition === "right") {
-              logoX = nameX + effectiveNameWidth - logoMargin - logoSize;
+              logoX = isRightSide
+                ? nameX + logoMargin
+                : nameX + effectiveNameWidth - logoMargin - logoSize;
             } else {
-              logoX = nameX + logoMargin;
+              logoX = isRightSide
+                ? nameX + effectiveNameWidth - logoMargin - logoSize - seedSpace
+                : nameX + logoMargin + seedSpace;
             }
 
             const logoShape = new ImageShape(
@@ -274,18 +305,24 @@ class BracketLayout {
             boxes.push(logoShape);
           }
 
-          // Compute text position — shift to make room for the logo
+          // Compute text position — shift to make room for seed and logo
           let textCenterX;
-          if (showLogo) {
+          const totalLeadingSpace = seedSpace + logoSpace;
+          
+          if (isRightSide) {
+            // In right side (split), everything is mirrored
             if (this.#theme.teamLogoPosition === "right") {
-              // Logo on right: text shifts left
-              textCenterX = nameX + (effectiveNameWidth - logoSpace) / 2;
+              // Logo is on the "internal" side of the box
+              textCenterX = nameX + logoSpace + (effectiveNameWidth - totalLeadingSpace) / 2;
             } else {
-              // Logo on left: text shifts right
-              textCenterX = nameX + logoSpace + (effectiveNameWidth - logoSpace) / 2;
+              textCenterX = nameX + (effectiveNameWidth - totalLeadingSpace) / 2;
             }
           } else {
-            textCenterX = nameX + effectiveNameWidth / 2;
+            if (this.#theme.teamLogoPosition === "right") {
+              textCenterX = nameX + (effectiveNameWidth - totalLeadingSpace) / 2;
+            } else {
+              textCenterX = nameX + totalLeadingSpace + (effectiveNameWidth - totalLeadingSpace) / 2;
+            }
           }
 
           let nameTextColor = this.#theme.textColor;
@@ -477,6 +514,8 @@ class BracketLayout {
     for (let i = 0; i < match.teams.length; i++) {
       const teamData = match.teams[i];
       const teamName = teamData.name;
+      const logoMargin = this.#theme.teamLogoMargin;
+      const seedValue = teamData.seed;
       const score = teamData.score !== undefined ? teamData.score : null;
       const url = teamData.url || null;
       
@@ -545,6 +584,7 @@ class BracketLayout {
       }
       shapes.push(mainBox);
 
+
       // Score Box
       if (hasScore) {
         const scoreX = x + effectiveNameWidth;
@@ -569,16 +609,37 @@ class BracketLayout {
         shapes.push(scoreText);
       }
 
+      // Seed
+      const showSeed = this.#theme.showSeeds && (seedValue !== undefined && seedValue !== null);
+      let seedWidth = 0;
+      let seedText = "";
+      if (showSeed) {
+        seedText = typeof seedValue === 'number' ? `#${seedValue}` : seedValue.toString();
+        ctx.font = `${this.#theme.seedFontSize}px ${fontFamily}`;
+        seedWidth = ctx.measureText(seedText).width;
+      }
+      const seedSpace = showSeed ? (seedWidth + this.#theme.seedMarginRight) : 0;
+
+      if (showSeed) {
+        const seedX = x + logoMargin;
+        const seedShape = new TextShape(
+          seedX + seedWidth / 2, y + teamYsize / 2, seedText,
+          this.#theme.seedTextColor || roundHeaderTextColor,
+          fontFamily, this.#theme.seedFontSize
+        );
+        seedShape.hoverGroupId = hoverGroupId;
+        shapes.push(seedShape);
+      }
+
       // Logo
       const teamImage = teamData.image ? ImageLoader.get(teamData.image) : null;
       const showLogo = this.#theme.showTeamLogos && teamImage;
       const logoSize = this.#theme.teamLogoSize;
-      const logoMargin = this.#theme.teamLogoMargin;
       const logoSpace = showLogo ? (logoSize + logoMargin) : 0;
 
       if (showLogo) {
         const logoY = y + (teamYsize - logoSize) / 2;
-        const logoX = x + logoMargin;
+        const logoX = x + logoMargin + seedSpace;
         const logoShape = new ImageShape(logoX, logoY, logoSize, logoSize, teamImage, {
           clipShape: this.#theme.teamLogoShape,
           borderRadius: this.#theme.teamLogoBorderRadius
@@ -592,7 +653,8 @@ class BracketLayout {
       }
 
       // Name
-      const textCenterX = x + logoSpace + (effectiveNameWidth - logoSpace) / 2;
+      const totalLeadingSpace = seedSpace + logoSpace;
+      const textCenterX = x + totalLeadingSpace + (effectiveNameWidth - totalLeadingSpace) / 2;
       const nameText = new TextShape(
         textCenterX, y + teamYsize / 2, teamName,
         nameTextColor, fontFamily, this.#theme.fontSize
@@ -709,10 +771,10 @@ class BracketLayout {
 
       ctx.font = `${currentFontSize}px ${this.#theme.fontFamily}`;
 
-      // Extra width needed for logo if any team in this round has an image
-      const logoExtra = this.#theme.showTeamLogos
-        ? (currentLogoSize + currentLogoMargin * 2)
-        : 0;
+      // Extra width needed for logo and seeds
+      const showLogos = this.#theme.showTeamLogos;
+      const showSeeds = this.#theme.showSeeds;
+      const logoExtra = showLogos ? (currentLogoSize + currentLogoMargin * 2) : 0;
 
       for (const match of roundData.matches) {
         for (const teamData of match.teams) {
@@ -720,9 +782,17 @@ class BracketLayout {
           const measuredWidth = ctx ? ctx.measureText(teamName).width : teamName.length * 8;
           let requiredWidth = measuredWidth + currentPaddingX;
           
+          // Add seed space if present
+          if (showSeeds && teamData.seed !== undefined && teamData.seed !== null) {
+            const seedText = typeof teamData.seed === 'number' ? `#${teamData.seed}` : teamData.seed.toString();
+            ctx.font = `${this.#theme.seedFontSize}px ${this.#theme.fontFamily}`;
+            requiredWidth += ctx.measureText(seedText).width + this.#theme.seedMarginRight;
+            ctx.font = `${currentFontSize}px ${this.#theme.fontFamily}`;
+          }
+
           // Add logo space if this team has an image
           const hasImage = teamData.image && ImageLoader.get(teamData.image);
-          if (hasImage) {
+          if (showLogos && hasImage) {
             requiredWidth += logoExtra;
           }
 
