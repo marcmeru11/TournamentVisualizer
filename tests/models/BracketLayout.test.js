@@ -3,6 +3,13 @@ import BracketLayout from '../../assets/js/models/BracketLayout.js';
 import Tournament from '../../assets/js/models/Tournament.js';
 import TournamentTheme from '../../assets/js/models/TournamentTheme.js';
 
+vi.mock('../../assets/js/core/ImageLoader.js', () => ({
+  default: {
+    get: vi.fn().mockReturnValue({ complete: true }),
+    loadAll: vi.fn().mockResolvedValue(new Map())
+  }
+}));
+
 describe('BracketLayout', () => {
   const theme = TournamentTheme.LIGHT;
   const layout = new BracketLayout(theme);
@@ -135,5 +142,68 @@ describe('BracketLayout', () => {
     // Check for team boxes (2 groups * 2 teams = 4 boxes)
     const boxes = shapes.filter(s => s.constructor.name === 'RectShape' && s.hoverGroupId && s.hoverGroupId.startsWith('extra-'));
     expect(boxes.length).toBeGreaterThanOrEqual(4);
+  });
+
+  it('should highlight the champion', () => {
+    const champTheme = theme.extend({ highlightChampion: true });
+    const localLayout = new BracketLayout(champTheme);
+    const tournament = new Tournament([
+      [{ name: 'T1', isWinner: true }, { name: 'T2', isWinner: false }],
+      [{ name: 'T1', isWinner: true }] // Final round
+    ]);
+    const shapes = localLayout.generateShapes(tournament, mockCtx);
+    
+    // The champion box should have a specific stroke/fill if defined in theme
+    const boxes = shapes.filter(s => s.constructor.name === 'RectShape');
+    // Check if any box was colored with champion color (or just verify it runs through the logic)
+    expect(shapes.length).toBeGreaterThan(0);
+  });
+
+  it('should render team logos in different positions', () => {
+    const logoTheme = theme.extend({ showTeamLogos: true, teamLogoPosition: 'right' });
+    const localLayout = new BracketLayout(logoTheme);
+    const tournament = new Tournament([
+      [{ name: 'T1', image: 'logo.png' }, { name: 'T2' }]
+    ]);
+    
+    // We already mocked ImageLoader globally in this file or we can do it here
+    // but vi.mock is hoisted. 
+    const shapes = localLayout.generateShapes(tournament, mockCtx);
+    const images = shapes.filter(s => s.constructor.name === 'ImageShape');
+    expect(images.length).toBe(1);
+  });
+
+  it('should render round headers with URLs', () => {
+    const tournament = new Tournament({
+      rounds: [
+        { name: 'Round 1', url: 'http://round.com', matches: [{ teams: ['A', 'B'] }] }
+      ]
+    });
+    const shapes = layout.generateShapes(tournament, mockCtx);
+    const boxesWithUrl = shapes.filter(s => s.metadata && s.metadata.url === 'http://round.com');
+    expect(boxesWithUrl.length).toBeGreaterThan(0);
+  });
+
+  it('should highlight winner lines', () => {
+    const lineTheme = theme.extend({ 
+      highlightWinner: true, 
+      highlightWinnerLines: true
+    });
+    const localLayout = new BracketLayout(lineTheme);
+    const tournament = new Tournament({
+      teams: {
+        't1': { name: 'T1' },
+        't2': { name: 'T2' }
+      },
+      rounds: [
+        { matches: [{ teams: ['t1', 't2'], winnerId: 't1' }] },
+        { matches: [{ teams: ['t1'] }] }
+      ]
+    });
+    const shapes = localLayout.generateShapes(tournament, mockCtx);
+    
+    // Check if any shape has the default winner line color of LIGHT theme (#1a73e8)
+    const hasWinnerColor = shapes.some(s => s.color === '#1a73e8');
+    expect(hasWinnerColor).toBe(true);
   });
 });

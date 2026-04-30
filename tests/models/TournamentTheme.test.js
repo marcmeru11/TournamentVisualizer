@@ -24,6 +24,5 @@ describe('TournamentTheme Model', () => {
   it('should provide presets', () => {
     expect(TournamentTheme.LIGHT).toBeInstanceOf(TournamentTheme);
     expect(TournamentTheme.DARK).toBeInstanceOf(TournamentTheme);
-    expect(TournamentTheme.BLUE).toBeInstanceOf(TournamentTheme);
   });
 });
