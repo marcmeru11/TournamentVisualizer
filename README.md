@@ -14,6 +14,8 @@ A standalone, modular tournament bracket renderer for HTML5 Canvas. This library
 *   **Optional UI Components**: Built-in "Center View" button with customizable styling and automatic DOM placement.
 *   **Dynamic Layouts**: Supports both standard single-sided brackets and symmetric split (dual-sided) brackets.
 *   **Theme System**: Dedicated theme class with built-in presets (LIGHT, DARK, BLUE) and granular customization.
+*   **Winner & Champion Highlighting**: Robust system to highlight winners, losers, and champions with specific box colors, text styles, and line paths.
+*   **Extra Matches Support**: Native support for third-place matches or any additional matches outside the main bracket, with custom titles and flexible alignment.
 *   **Adaptive Box Sizing**: Automatic calculation of box widths based on team name length, logo presence, and score.
 *   **HiDPI / Retina**: Automatic pixel-ratio scaling for crisp rendering on all displays.
 *   **Zero Dependencies**: Built with vanilla JavaScript and the native Canvas 2D API.
@@ -162,6 +164,30 @@ The configuration class for visual styling and behavior.
 | `centerButtonText` | Text for the center button | `"Center View"` |
 | `centerButtonStyle` | CSS object for button customization | (Premium Defaults) |
 
+##### Winner & Champion Highlighting
+
+| Property | Description | Default |
+| :--- | :--- | :--- |
+| `highlightWinner` | Enable special styling for winners | `true` |
+| `winnerBoxFillColor` | Background for winner boxes | `null` (uses default) |
+| `winnerBoxStrokeColor`| Border color for winner boxes | `null` |
+| `winnerTextColor` | Text color for winners | `null` |
+| `highlightWinnerLines`| Highlight connector lines for winners| `true` |
+| `winnerLineColor` | Color for winner progress lines | `null` |
+| `highlightChampion` | Enable special styling for champions | `true` |
+| `championBoxFillColor` | Background for the champion box | `null` |
+| `championTextColor` | Text color for the champion | `null` |
+| `championFontSize` | Font size for the champion | `null` |
+| `championLogoSize` | Logo size for the champion | `null` |
+
+##### Extra Matches
+
+| Property | Description | Default |
+| :--- | :--- | :--- |
+| `extraMatchesMarginTop`| Margin above extra matches section | `60` |
+| `extraMatchSpacingY` | Gap between extra match groups | `40` |
+| `extraMatchesDefaultLabel`| Default title for extra matches | `"Extra Match"` |
+
 ## Data Format
 
 ### Recommended: Object Format (v2.0)
@@ -194,6 +220,19 @@ const data = {
           ]
         }
       ]
+    }
+  ],
+
+  // Optional: Matches outside the main bracket (e.g. 3rd Place)
+  extraMatches: [
+    {
+      title: "3rd Place Match",
+      alignWithRound: 0,       // Align horizontally with a specific round index
+      match: {
+        id: "m3rd",
+        teams: [{ id: "BAY", score: 2 }, { id: "FCB", score: 0 }],
+        winnerId: "BAY"
+      }
     }
   ]
 };
