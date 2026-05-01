@@ -19,6 +19,7 @@ class TournamentBracket {
   #layout;
   #input;
   #theme;
+  #container;
   #sceneShapes = [];
   #centerButton = null;
   #hoveredGroupId = null;
@@ -43,6 +44,27 @@ class TournamentBracket {
       ? themeOrOptions 
       : new TournamentTheme(themeOrOptions);
 
+    // Create a container to host the canvas and any UI elements (like buttons)
+    // This ensures absolute-positioned UI elements stay relative to the bracket.
+    this.#container = document.createElement("div");
+    this.#container.className = "tournament-bracket-container";
+    Object.assign(this.#container.style, {
+      position: "relative",
+      width: "fit-content",
+      height: "fit-content"
+    });
+
+    // Inherit the canvas's display property to maintain layout integrity
+    const canvasDisplay = window.getComputedStyle(this.#canvas).display;
+    this.#container.style.display = (canvasDisplay === "inline" || canvasDisplay === "inline-block") 
+      ? "inline-block" 
+      : "block";
+
+    if (this.#canvas.parentElement) {
+      this.#canvas.parentElement.insertBefore(this.#container, this.#canvas);
+    }
+    this.#container.appendChild(this.#canvas);
+
     this.#camera = new Camera();
     this.#renderer = new Renderer(this.#canvas, this.#camera, this.#theme.backgroundColor);
     this.#tournament = new Tournament();
@@ -59,7 +81,7 @@ class TournamentBracket {
       this.#initUI();
     }
 
-    this.resize(this.#canvas.clientWidth, this.#canvas.clientHeight);
+    this.resize();
   }
 
   /**
@@ -244,17 +266,8 @@ class TournamentBracket {
       this.render();
     };
 
-    // Append to parent if possible, otherwise after canvas
-    if (this.#canvas.parentElement) {
-      // Ensure parent is positioned to host the absolute button
-      const parentStyle = window.getComputedStyle(this.#canvas.parentElement);
-      if (parentStyle.position === "static") {
-        this.#canvas.parentElement.style.position = "relative";
-      }
-      this.#canvas.parentElement.appendChild(this.#centerButton);
-    } else {
-      this.#canvas.after(this.#centerButton);
-    }
+    // Append to our internal container
+    this.#container.appendChild(this.#centerButton);
   }
 }
 

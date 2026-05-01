@@ -13,7 +13,13 @@ describe('TournamentBracket Integration', () => {
   });
 
   afterEach(() => {
-    document.body.removeChild(canvas);
+    // If the canvas was wrapped, remove the container
+    const container = canvas.closest('.tournament-bracket-container');
+    if (container && container.parentElement) {
+      container.parentElement.removeChild(container);
+    } else if (canvas.parentElement) {
+      canvas.parentElement.removeChild(canvas);
+    }
   });
 
   it('should initialize with a canvas ID', () => {
@@ -103,7 +109,7 @@ describe('TournamentBracket Integration', () => {
     document.body.appendChild(wrapper);
 
     const bracketWithParent = new TournamentBracket(newCanvas, theme);
-    const parentBtn = wrapper.querySelector('button');
+    const parentBtn = wrapper.querySelector('#tournament-center-btn');
     expect(parentBtn).not.toBeNull();
 
     // Trigger button interaction
@@ -177,14 +183,18 @@ describe('TournamentBracket Integration', () => {
     vi.spyOn(isolatedCanvas, 'clientHeight', 'get').mockReturnValue(100);
     
     const bracket = new TournamentBracket(isolatedCanvas, theme);
-    // after() does nothing without a parent in standard DOM
-    expect(isolatedCanvas.nextSibling).toBeNull();
+    // Even without a parent, it's now wrapped in a container, 
+    // and the button is a sibling of the canvas within that container.
+    expect(isolatedCanvas.nextSibling).not.toBeNull();
+    expect(isolatedCanvas.nextSibling.id).toBe('tournament-center-btn');
 
     // Now with a parent
     const container = document.createElement('div');
     container.appendChild(isolatedCanvas);
     const bracket2 = new TournamentBracket(isolatedCanvas, theme);
+    // The container should be a child of our div, and the button a sibling of the canvas
     expect(isolatedCanvas.nextSibling).not.toBeNull();
     expect(isolatedCanvas.nextSibling.id).toBe('tournament-center-btn');
+    expect(isolatedCanvas.parentElement.className).toBe('tournament-bracket-container');
   });
 });
