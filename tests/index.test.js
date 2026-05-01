@@ -13,11 +13,7 @@ describe('TournamentBracket Integration', () => {
   });
 
   afterEach(() => {
-    // If the canvas was wrapped, remove the container
-    const container = canvas.closest('.tournament-bracket-container');
-    if (container && container.parentElement) {
-      container.parentElement.removeChild(container);
-    } else if (canvas.parentElement) {
+    if (canvas.parentElement) {
       canvas.parentElement.removeChild(canvas);
     }
   });
@@ -92,42 +88,17 @@ describe('TournamentBracket Integration', () => {
     expect(bracket).toBeDefined();
   });
 
-  it('should create and handle center button UI', () => {
+  it('should handle center button UI logic', () => {
     const theme = new TournamentTheme({ showCenterButton: true });
     
-    // It should append the button to the DOM
+    // It should NOT append the button to the DOM anymore
     const bracket = new TournamentBracket(canvas, theme);
     
     const btn = document.getElementById('tournament-center-btn');
-    expect(btn).toBeDefined();
-    expect(btn).not.toBeNull();
+    expect(btn).toBeNull();
 
-    // Mock parent element to test appending logic
-    const wrapper = document.createElement('div');
-    const newCanvas = document.createElement('canvas');
-    wrapper.appendChild(newCanvas);
-    document.body.appendChild(wrapper);
-
-    const bracketWithParent = new TournamentBracket(newCanvas, theme);
-    const parentBtn = wrapper.querySelector('button');
-    expect(parentBtn).not.toBeNull();
-
-    // Trigger button interaction
-    vi.spyOn(bracketWithParent, 'centerCamera');
-    vi.spyOn(bracketWithParent, 'render');
-    
-    parentBtn.click();
-    expect(bracketWithParent.centerCamera).toHaveBeenCalled();
-    expect(bracketWithParent.render).toHaveBeenCalled();
-
-    // Trigger hover
-    parentBtn.dispatchEvent(new MouseEvent('mouseover'));
-    expect(parentBtn.style.opacity).toBe('0.9');
-    
-    parentBtn.dispatchEvent(new MouseEvent('mouseout'));
-    expect(parentBtn.style.opacity).toBe('1');
-    
-    document.body.removeChild(wrapper);
+    // Verify it doesn't wrap the canvas in a container
+    expect(canvas.parentElement.className).not.toBe('tournament-bracket-container');
   });
 
   it('should handle interaction events correctly', () => {
@@ -173,28 +144,14 @@ describe('TournamentBracket Integration', () => {
     expect(resizeSpy).toHaveBeenCalled();
   });
 
-  it('should append button after canvas if no parent', () => {
+  it('should not wrap canvas or append button even if no parent', () => {
     const theme = new TournamentTheme({ showCenterButton: true });
-    // canvas in beforeEach has document.body as parent.
-    // Let's create one without parent.
     const isolatedCanvas = document.createElement('canvas');
-    // We need to mock clientWidth/Height so it doesn't crash in constructor
     vi.spyOn(isolatedCanvas, 'clientWidth', 'get').mockReturnValue(100);
     vi.spyOn(isolatedCanvas, 'clientHeight', 'get').mockReturnValue(100);
     
     const bracket = new TournamentBracket(isolatedCanvas, theme);
-    // Even without a parent, it's now wrapped in a container, 
-    // and the button is a sibling of the canvas within that container.
-    expect(isolatedCanvas.nextSibling).not.toBeNull();
-    expect(isolatedCanvas.nextSibling.id).toBe('tournament-center-btn');
-
-    // Now with a parent
-    const parentWrapper = document.createElement('div');
-    parentWrapper.appendChild(isolatedCanvas);
-    const bracket2 = new TournamentBracket(isolatedCanvas, theme);
-    // The container should be a child of our div, and the button a sibling of the canvas
-    expect(isolatedCanvas.nextSibling).not.toBeNull();
-    expect(isolatedCanvas.nextSibling.id).toBe('tournament-center-btn');
-    expect(isolatedCanvas.parentElement.className).toBe('tournament-bracket-container');
+    expect(isolatedCanvas.nextSibling).toBeNull();
+    expect(isolatedCanvas.parentElement).toBeNull();
   });
 });

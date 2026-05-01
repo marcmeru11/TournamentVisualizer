@@ -27,7 +27,13 @@ export default class BaseInput {
   triggerInput(type, clientX, clientY) {
     if (this.onInput) {
       const coords = this.getWorldCoords(clientX, clientY);
-      this.onInput({ type, x: coords.x, y: coords.y });
+      this.onInput({ 
+        type, 
+        x: coords.x, 
+        y: coords.y,
+        canvasX: coords.canvasX,
+        canvasY: coords.canvasY
+      });
     }
   }
 }

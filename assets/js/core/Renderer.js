@@ -45,6 +45,20 @@ class Renderer {
   }
 
   /**
+   * Prepares the context for drawing fixed UI elements in screen space.
+   */
+  beginUI() {
+    this.#camera.applyUIScale(this.#ctx);
+  }
+
+  /**
+   * Resets transformations.
+   */
+  endUI() {
+    this.#camera.reset(this.#ctx);
+  }
+
+  /**
    * Resizes the canvas and notifies if a re-render might be needed.
    */
   resize(width, height) {

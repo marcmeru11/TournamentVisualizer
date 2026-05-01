@@ -73,6 +73,15 @@ class Camera {
     ctx.setTransform(this.#zoom * dpr, 0, 0, this.#zoom * dpr, this.#x * dpr, this.#y * dpr);
   }
 
+  /**
+   * Applies only the device pixel ratio transformation, resetting zoom and pan.
+   * Useful for drawing UI elements in screen space.
+   */
+  applyUIScale(ctx) {
+    const dpr = window.devicePixelRatio || 1;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
   reset(ctx) {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
   }

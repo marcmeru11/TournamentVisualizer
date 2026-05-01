@@ -44,27 +44,7 @@ class TournamentBracket {
       ? themeOrOptions 
       : new TournamentTheme(themeOrOptions);
 
-    // Create a container to host the canvas and any UI elements (like buttons)
-    // This ensures absolute-positioned UI elements stay relative to the bracket.
-    this.#container = document.createElement("div");
-    this.#container.className = "tournament-bracket-container";
-    Object.assign(this.#container.style, {
-      position: "relative",
-      width: "fit-content",
-      height: "fit-content"
-    });
-
-    // Inherit the canvas's display property to maintain layout integrity
-    const canvasDisplay = window.getComputedStyle(this.#canvas).display;
-    this.#container.style.display = (canvasDisplay === "inline" || canvasDisplay === "inline-block") 
-      ? "inline-block" 
-      : "block";
-
-    if (this.#canvas.parentElement) {
-      this.#canvas.parentElement.insertBefore(this.#container, this.#canvas);
-    }
-    this.#container.appendChild(this.#canvas);
-
+    // We no longer need a container as the button is drawn directly on the canvas.
     this.#camera = new Camera();
     this.#renderer = new Renderer(this.#canvas, this.#camera, this.#theme.backgroundColor);
     this.#tournament = new Tournament();
@@ -121,6 +101,10 @@ class TournamentBracket {
     for (const shape of this.#sceneShapes) {
       shape.draw(this.#renderer.ctx, this.#camera);
     }
+
+    if (this.#theme.showCenterButton) {
+      this.#drawUI();
+    }
   }
 
   /**
@@ -148,12 +132,6 @@ class TournamentBracket {
     const shape = this.#findShapeAt(event.x, event.y);
     
     if (event.type === "hover") {
-      if (shape && shape.cursor) {
-        this.#canvas.style.cursor = shape.cursor;
-      } else {
-        this.#canvas.style.cursor = "default";
-      }
-
       // Handle hover groups
       const groupId = shape ? shape.hoverGroupId : null;
       if (groupId !== this.#hoveredGroupId) {
@@ -173,13 +151,37 @@ class TournamentBracket {
           this.render();
         }
       }
-
     } else if (event.type === "click") {
+      if (this.#isPointInButton(event.canvasX, event.canvasY)) {
+        this.centerCamera();
+        this.render();
+        return;
+      }
+
       if (shape && shape.metadata && shape.metadata.url) {
         console.log("TournamentBracket: Opening URL", shape.metadata.url);
         window.open(shape.metadata.url, "_blank");
       }
     }
+
+    // Determine final cursor
+    let finalCursor = shape && shape.cursor ? shape.cursor : "default";
+
+    // Handle button hover separately as it's in screen space
+    if (this.#theme.showCenterButton) {
+      const isOverButton = this.#isPointInButton(event.canvasX, event.canvasY);
+      
+      if (this.#centerButton && this.#centerButton.isHovered !== isOverButton) {
+        this.#centerButton.isHovered = isOverButton;
+        this.render();
+      }
+
+      if (isOverButton) {
+        finalCursor = "pointer";
+      }
+    }
+
+    this.#canvas.style.cursor = finalCursor;
   }
 
   #findShapeAt(x, y) {
@@ -238,36 +240,91 @@ class TournamentBracket {
   }
 
   #initUI() {
-    this.#centerButton = document.createElement("button");
-    this.#centerButton.innerText = this.#theme.centerButtonText;
-    this.#centerButton.id = "tournament-center-btn";
+    // Initialize button metadata (position and size will be calculated during draw)
+    this.#centerButton = {
+      isHovered: false,
+      rect: { x: 0, y: 0, width: 0, height: 0 }
+    };
+  }
+
+  #drawUI() {
+    const ctx = this.#renderer.ctx;
+    const style = this.#theme.centerButtonStyle;
+    const paddingX = parseInt(style.padding?.split(" ")[1]) || 16;
+    const paddingY = parseInt(style.padding?.split(" ")[0]) || 8;
     
-    // Apply styles
-    Object.assign(this.#centerButton.style, {
-      position: "absolute",
-      bottom: "20px",
-      right: "20px",
-      zIndex: "10",
-      ...this.#theme.centerButtonStyle
-    });
+    this.#renderer.beginUI();
 
-    // Hover effect
-    this.#centerButton.onmouseover = () => {
-      this.#centerButton.style.opacity = "0.9";
-      this.#centerButton.style.transform = "scale(1.05)";
-    };
-    this.#centerButton.onmouseout = () => {
-      this.#centerButton.style.opacity = "1";
-      this.#centerButton.style.transform = "scale(1)";
-    };
+    ctx.font = `${style.fontWeight || "500"} ${style.fontSize || "14px"} ${this.#theme.fontFamily}`;
+    const textMetrics = ctx.measureText(this.#theme.centerButtonText);
+    const textWidth = textMetrics.width;
+    const textHeight = parseInt(style.fontSize) || 14;
 
-    this.#centerButton.onclick = () => {
-      this.centerCamera();
-      this.render();
-    };
+    const btnWidth = textWidth + paddingX * 2;
+    const btnHeight = textHeight + paddingY * 2;
+    
+    // Position: Bottom Right with 20px margin
+    const margin = 20;
+    const x = this.#canvas.clientWidth - btnWidth - margin;
+    const y = this.#canvas.clientHeight - btnHeight - margin;
 
-    // Append to our internal container
-    this.#container.appendChild(this.#centerButton);
+    // Update button rect for interaction detection
+    this.#centerButton.rect = { x, y, width: btnWidth, height: btnHeight };
+
+    // Draw shadow if any (simplified)
+    if (style.boxShadow && style.boxShadow !== "none") {
+      ctx.shadowColor = "rgba(0,0,0,0.2)";
+      ctx.shadowBlur = 4;
+      ctx.shadowOffsetY = 2;
+    }
+
+    // Draw background
+    ctx.fillStyle = this.#centerButton.isHovered ? "#334155" : (style.backgroundColor || "#1e293b");
+    if (this.#centerButton.isHovered) {
+        ctx.save();
+        ctx.translate(x + btnWidth / 2, y + btnHeight / 2);
+        ctx.scale(1.05, 1.05);
+        ctx.translate(-(x + btnWidth / 2), -(y + btnHeight / 2));
+    }
+
+    const radius = parseInt(style.borderRadius) || 8;
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(x, y, btnWidth, btnHeight, radius);
+    } else {
+      ctx.rect(x, y, btnWidth, btnHeight);
+    }
+    ctx.fill();
+
+    // Draw border
+    if (style.border && style.border !== "none") {
+      ctx.strokeStyle = style.border.split(" ").pop() || "#38bdf8";
+      ctx.lineWidth = parseInt(style.border.split(" ")[0]) || 1;
+      ctx.stroke();
+    }
+
+    // Draw text
+    ctx.fillStyle = style.color || "#f8fafc";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(this.#theme.centerButtonText, x + btnWidth / 2, y + btnHeight / 2);
+
+    if (this.#centerButton.isHovered) {
+        ctx.restore();
+    }
+
+    // Reset shadow
+    ctx.shadowColor = "transparent";
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+
+    this.#renderer.endUI();
+  }
+
+  #isPointInButton(canvasX, canvasY) {
+    if (!this.#theme.showCenterButton || !this.#centerButton) return false;
+    const { x, y, width, height } = this.#centerButton.rect;
+    return canvasX >= x && canvasX <= x + width && canvasY >= y && canvasY <= y + height;
   }
 }
 
