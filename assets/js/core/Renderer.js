@@ -65,8 +65,6 @@ class Renderer {
     const dpr = window.devicePixelRatio || 1;
     this.#canvas.width = width * dpr;
     this.#canvas.height = height * dpr;
-    this.#canvas.style.width = width + "px";
-    this.#canvas.style.height = height + "px";
   }
 }
 

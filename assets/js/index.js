@@ -61,6 +61,14 @@ class TournamentBracket {
       this.#initUI();
     }
 
+    // Auto-resize when the canvas element's size changes in the DOM
+    if (typeof ResizeObserver !== "undefined") {
+      const resizeObserver = new ResizeObserver(() => {
+        this.resize();
+      });
+      resizeObserver.observe(this.#canvas);
+    }
+
     this.resize();
   }
 
